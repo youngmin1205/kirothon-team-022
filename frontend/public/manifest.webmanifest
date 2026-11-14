@@ -1,0 +1,16 @@
+{
+  "name": "밥은 먹었니",
+  "short_name": "밥은 먹었니",
+  "description": "사진 한 장, 기분 하나로 엄마·아빠께 각자 맞는 안부를 보내요",
+  "lang": "ko",
+  "start_url": "/?feature=bab&view=child",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FBF5EC",
+  "theme_color": "#FBF5EC",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
