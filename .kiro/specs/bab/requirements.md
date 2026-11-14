@@ -87,7 +87,7 @@
 
 1. `compose` 구간 `data.messages` 는 받는 사람 수(2)만큼이고, 각 항목에
    `to name channel items summary text` 가 있다.
-2. `items` 는 그 사람 프로필의 항목과 같다 (엄마 `meal home mood`, 아빠 `home`).
+2. `items` 는 그 사람 프로필(`profiles.json`)의 항목과 같다 (현재: 엄마 `meal home mood note`, 아빠 `home note`). 아빠 항목에 `mood` 는 없다.
 3. 엄마용과 아빠용 `text` 가 서로 다르다.
 4. `summary` 는 코드가 조립한다. 항목 emoji 와 값을 ` · ` 로 이은 문자열이고 모델 출력에 의존하지 않는다.
 
