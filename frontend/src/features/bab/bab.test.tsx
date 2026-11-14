@@ -171,6 +171,7 @@ describe('밥은 먹었니', () => {
     await user.click(q('[data-tone="dad:dialect"]') as HTMLElement)
     await user.click(q('[data-tone="mom:warm"]') as HTMLElement)
     await user.type(q('#bab-voice') as HTMLElement, '오늘도 화이팅 ㅎㅎ')
+    await user.type(q('[data-address="dad"]') as HTMLElement, '아부지')
     await user.click(screen.getByRole('button', { name: '완료' }))
 
     await user.click(q('#bab-cta') as HTMLButtonElement)
@@ -179,6 +180,7 @@ describe('밥은 먹었니', () => {
     await waitFor(() => expect(bodies.some((b) => b.payload && 'tones' in b.payload)).toBe(true))
     expect(bodies.find((b) => b.payload && 'tones' in b.payload)?.payload).toEqual({
       tones: { dad: 'dialect', mom: 'warm' },
+      addresses: { dad: '아부지' },
       voice: ['오늘도 화이팅 ㅎㅎ'],
     })
   })

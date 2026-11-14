@@ -83,6 +83,7 @@ function BabDuo({ view }: { view: View }) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [tones, setTones] = useState<Partial<Record<string, ToneKey>>>({})
   const [voice, setVoice] = useState('')
+  const [addresses, setAddresses] = useState<Record<string, string>>({})
   const [edited, setEdited] = useState<CheckT[] | null>(null)
   const [editing, setEditing] = useState<ItemKey | null>(null)
   const [pressed, setPressed] = useState<ButtonKey[]>([])
@@ -100,6 +101,7 @@ function BabDuo({ view }: { view: View }) {
     setSheetOpen(false)
     setTones({})
     setVoice('')
+    setAddresses({})
     setEdited(null)
     setEditing(null)
     setPressed([])
@@ -191,8 +193,12 @@ function BabDuo({ view }: { view: View }) {
     })
     // 말투를 고르지 않았으면 payload 를 보내지 않는다 → 서버는 프로필 기본 말투 (R9)
     const voiceLines = voice.split('\n').map((v) => v.trim()).filter(Boolean).slice(0, MAX_VOICE)
+    const calls = Object.fromEntries(
+      Object.entries(addresses).map(([k, v]) => [k, v.trim()]).filter(([, v]) => v),
+    )
     const style = {
       ...(Object.keys(tones).length ? { tones } : {}),
+      ...(Object.keys(calls).length ? { addresses: calls } : {}),
       ...(voiceLines.length ? { voice: voiceLines } : {}),
     }
     await send(sayOf('compose'), Object.keys(style).length ? { payload: style } : undefined)
@@ -647,6 +653,24 @@ function BabDuo({ view }: { view: View }) {
 
               {/* ── 아래 고정: 조절 버튼과 주요 버튼 하나 ───── */}
               {childStep !== 'sent' ? (
+                <>
+                {childStep === 'today' && !running ? (
+                  <button
+                    type="button"
+                    className="bab-persona-link"
+                    id="bab-persona-link"
+                    disabled={busy}
+                    onClick={() => setSheetOpen(true)}
+                  >
+                    <Sliders size={16} />
+                    {Object.keys(tones).length
+                      ? RECIPIENTS.filter((r) => tones[r.id])
+                          .map((r) => `${r.name} ${TONE_OPTIONS.find((t) => t.key === tones[r.id])?.label}`)
+                          .join(' · ')
+                      : '받는 분별 말투·호칭 정하기'}
+                    <span aria-hidden="true">›</span>
+                  </button>
+                ) : null}
                 <footer className="bab-footer">
                   {childStep === 'today' ? (
                     <button
@@ -694,6 +718,7 @@ function BabDuo({ view }: { view: View }) {
                     </button>
                   )}
                 </footer>
+                </>
               ) : null}
 
               {/* ── 조절 시트: 고급 옵션 ──────────────────── */}
@@ -769,6 +794,15 @@ function BabDuo({ view }: { view: View }) {
                               </button>
                             ))}
                           </div>
+                          <input
+                            className="bab-input bab-address"
+                            data-address={r.id}
+                            value={addresses[r.id] ?? ''}
+                            maxLength={12}
+                            placeholder={`부르는 말 (기본: ${r.name})`}
+                            aria-label={`${r.name}을 부르는 말`}
+                            onChange={(e) => setAddresses((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                          />
                         </div>
                       ))}
                       <small>말투는 어떻게 쓸지만 바꿔요. 무엇이 가는지는 그대로예요</small>
