@@ -29,6 +29,7 @@
 | 산출물 | Skills (pitch-deck · demo-film) | `.kiro/skills/` 의 절차서대로 `deliverables/product.md` 영상 대본·capture beats 8개·`celebrate.at=reply` 를 채우고 슬라이드 PDF·데모 영상을 생성. 실행은 Claude Code 가 SKILL.md 를 읽고 수행. 최종 데모 영상은 템플릿 대신 앱 화면을 live(Bedrock)로 그대로 녹화 | `deliverables/product.md`, `deliverables/tools/record-app.cjs` |
 | 검증 | — (계약 테스트 + 단위 테스트) | 문서·mock·프로필이 어긋나면 실패하는 계약 테스트 8개 + 수락 기준을 직접 확인하는 단위 테스트 18개. 구간 id 일치, AI 판정은 밥·귀가만, **아빠 입력에 `mood` 키 자체가 없음**, 링크를 안 열어도 말풍선에 요약이 있음, 부모님 반응은 고정 버튼만. `pytest` 53개 통과, `pnpm smoke` 로 bab 8구간 완주(USE_MOCK=1) | `tests/test_bab_contract.py`, `tests/test_bab_rules.py`, `tests/test_bab_flow.py` |
 | 검증 | **live 실측 (USE_MOCK=0 · Bedrock)** | `pnpm dev` 를 live 로 띄워 8구간 1회 완주. judge·compose 가 **실제 Bedrock(claude-sonnet-4-5) 호출**(폴백 경고 0건)되고, **아빠 메시지에 기분 표현 0건(R4-2)·엄마≠아빠(R5-3)** 를 live 에서 재확인 — mock 재생이 아니라 실제 모델 경로에서도 코드 필터가 지켜짐을 확인 | `backend/features/bab/{service,router}.py` |
+| 확장 | **Spec-first 기능 추가 (R9) — 말투·호칭·보이스** | 범위 밖이던 "받는 사람 말투 변경"을 requirements→코드→테스트 순으로 추가. `service.py` 의 `normalize_style` 이 말투 프리셋/커스텀·자유 호칭(`call_them`)·자녀 보이스를 길이·개수로 검증해 `compose` 프롬프트에만 주입한다. **공개 여부(`filter_facts`)는 불변** — 불변식 테스트로 "말투를 아무리 바꿔도 걸러진 기분은 아빠 입력에 다시 안 들어온다"를 보장. FE(＋시트 말투 칩·호칭 입력)까지 붙어 end-to-end, live 로 "아빠=사투리"(아부지~ 들어왔심더) 재생성과 기분 0건 유지를 확인 | `backend/features/bab/service.py`, `tests/test_bab_flow.py`, `frontend/src/features/bab/` (커밋 `1119994`·`8609638`) |
 | 기타 | MCP | (사용하면 기록) | `.kiro/settings/mcp.json` |
 
 ## 개발 과정에서 바뀐 점
