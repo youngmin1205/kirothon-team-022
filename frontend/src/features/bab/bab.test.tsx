@@ -161,6 +161,40 @@ describe('밥은 먹었니', () => {
     expect(fileNames(bodies[1])).toEqual(['desk.jpg']) // judge
   })
 
+  it('＋ 시트의 말투 칩과 내 말투 예시가 compose payload 로 간다 (R9)', async () => {
+    const user = userEvent.setup()
+    render(<BabView />)
+    await waitFor(() => expect(document.querySelectorAll('[data-beat]')).toHaveLength(8))
+
+    await user.click(screen.getByRole('radio', { name: /피곤해/ }))
+    await user.click(screen.getByRole('button', { name: '더 많은 옵션' }))
+    await user.click(q('[data-tone="dad:dialect"]') as HTMLElement)
+    await user.click(q('[data-tone="mom:warm"]') as HTMLElement)
+    await user.type(q('#bab-voice') as HTMLElement, '오늘도 화이팅 ㅎㅎ')
+    await user.click(screen.getByRole('button', { name: '완료' }))
+
+    await user.click(q('#bab-cta') as HTMLButtonElement)
+    await waitFor(() => expect(q('#bab-child')).toHaveAttribute('data-step', 'check'))
+    await user.click(q('#bab-cta') as HTMLButtonElement)
+    await waitFor(() => expect(bodies.some((b) => b.payload && 'tones' in b.payload)).toBe(true))
+    expect(bodies.find((b) => b.payload && 'tones' in b.payload)?.payload).toEqual({
+      tones: { dad: 'dialect', mom: 'warm' },
+      voice: ['오늘도 화이팅 ㅎㅎ'],
+    })
+  })
+
+  it('말투를 고르지 않으면 compose 에 payload 를 보내지 않는다', async () => {
+    const user = userEvent.setup()
+    render(<BabView />)
+    await waitFor(() => expect(document.querySelectorAll('[data-beat]')).toHaveLength(8))
+    await user.click(screen.getByRole('radio', { name: /피곤해/ }))
+    await user.click(q('#bab-cta') as HTMLButtonElement)
+    await waitFor(() => expect(q('#bab-child')).toHaveAttribute('data-step', 'check'))
+    await user.click(q('#bab-cta') as HTMLButtonElement)
+    await waitFor(() => expect(bodies.length).toBeGreaterThanOrEqual(4))
+    expect(bodies[3].payload).toBeNull() // upload, judge, confirm, compose
+  })
+
   it('＋ 시트에 한마디와 받는 사람별 내용이 숨어 있다', async () => {
     const user = userEvent.setup()
     render(<BabView />)

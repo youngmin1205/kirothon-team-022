@@ -4,7 +4,7 @@
  * 서버는 구간 data 로 대부분을 보내 주지만, 첫 화면(세션 전)과 선택지 목록은 서버 응답보다
  * 먼저 그려야 하므로 여기 둔다. 원본은 backend/features/bab/profiles.json 이다. 바뀌면 함께 고친다.
  */
-import type { ButtonKey, ItemKey, MoodKey } from './types'
+import type { ButtonKey, ItemKey, MoodKey, ToneKey } from './types'
 
 export const CHILD_NAME = '민지'
 
@@ -56,3 +56,13 @@ export const SAY: Record<string, string> = {
 }
 
 export const PHOTO_EMOJI: Record<string, string> = { 점심: '🍲', 현관: '🚪' }
+
+// 받는 분별 말투 칩 (R9). 말투는 "어떻게 쓸지"만 바꾸고, 무엇이 가는지는 바꾸지 않는다
+export const TONE_OPTIONS: { key: ToneKey; label: string }[] = [
+  { key: 'warm', label: '다정하게' },
+  { key: 'brief', label: '짧게' },
+  { key: 'formal', label: '존댓말' },
+  { key: 'dialect', label: '사투리' },
+  { key: 'cheerful', label: '밝게' },
+]
+export const MAX_VOICE = 3 // 서버 MAX_VOICE_ITEMS 와 같다

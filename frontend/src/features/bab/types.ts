@@ -10,6 +10,8 @@ export type ItemKey = 'meal' | 'home' | 'mood' | 'note'
 export type MoodKey = 'good' | 'ok' | 'tired' | 'busy' | 'sick' | 'custom'
 export type ButtonKey = 'heart' | 'call' | 'ate' | 'hospital' | 'fine'
 export type CheckStatus = 'done' | 'not_yet' | 'unknown'
+// 말투 프리셋 key. 서버 service.TONE_PRESETS 와 같다 (R9)
+export type ToneKey = 'warm' | 'brief' | 'formal' | 'dialect' | 'cheerful'
 
 export interface Recipient {
   id: string

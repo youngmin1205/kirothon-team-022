@@ -25,9 +25,9 @@ import { ArchFlow, Card, Steps } from '../../ui/primitives'
 import { PhoneFrame } from '../../ui/phone'
 import { ACCEPT, MAX_FILES, readFilesAsAttachments } from '../../lib/files'
 import type { Attachment } from '../../types/api'
-import type { BabBeats, BeatId, ButtonKey, Check as CheckT, ItemKey, Mood, MoodKey } from './types'
+import type { BabBeats, BeatId, ButtonKey, Check as CheckT, ItemKey, Mood, MoodKey, ToneKey } from './types'
 import { BEAT_ORDER } from './types'
-import { CHILD_NAME, ITEMS, MOOD_OPTIONS, PARENT_BUTTONS, PHOTO_EMOJI, RECIPIENTS, SAY } from './constants'
+import { CHILD_NAME, ITEMS, MOOD_OPTIONS, PARENT_BUTTONS, PHOTO_EMOJI, RECIPIENTS, SAY, TONE_OPTIONS, MAX_VOICE } from './constants'
 import { Avatar, Bowl, Camera, Check, Lock, Pencil, Send, Sliders, X } from './icons'
 import { MomLinkPage } from './remote'
 import { fetchLink, momLink, readView, shareMessage, type View } from './remote-link'
@@ -81,6 +81,8 @@ function BabDuo({ view }: { view: View }) {
   const [customMood, setCustomMood] = useState('')
   const [note, setNote] = useState('')
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [tones, setTones] = useState<Partial<Record<string, ToneKey>>>({})
+  const [voice, setVoice] = useState('')
   const [edited, setEdited] = useState<CheckT[] | null>(null)
   const [editing, setEditing] = useState<ItemKey | null>(null)
   const [pressed, setPressed] = useState<ButtonKey[]>([])
@@ -96,6 +98,8 @@ function BabDuo({ view }: { view: View }) {
     setCustomMood('')
     setNote('')
     setSheetOpen(false)
+    setTones({})
+    setVoice('')
     setEdited(null)
     setEditing(null)
     setPressed([])
@@ -185,7 +189,13 @@ function BabDuo({ view }: { view: View }) {
     await send(sayOf('confirm'), {
       payload: { checks: checks.map(({ item, status, detail }) => ({ item, status, detail })) },
     })
-    await send(sayOf('compose'))
+    // 말투를 고르지 않았으면 payload 를 보내지 않는다 → 서버는 프로필 기본 말투 (R9)
+    const voiceLines = voice.split('\n').map((v) => v.trim()).filter(Boolean).slice(0, MAX_VOICE)
+    const style = {
+      ...(Object.keys(tones).length ? { tones } : {}),
+      ...(voiceLines.length ? { voice: voiceLines } : {}),
+    }
+    await send(sayOf('compose'), Object.keys(style).length ? { payload: style } : undefined)
   }
 
   const deliver = () => send(sayOf('deliver'))
@@ -737,9 +747,46 @@ function BabDuo({ view }: { view: View }) {
                               </li>
                             ))}
                           </ul>
+                          <div className="bab-tones" role="radiogroup" aria-label={`${r.name}께 보낼 말투`}>
+                            {TONE_OPTIONS.map((t) => (
+                              <button
+                                key={t.key}
+                                type="button"
+                                role="radio"
+                                aria-checked={tones[r.id] === t.key}
+                                data-tone={`${r.id}:${t.key}`}
+                                className={tones[r.id] === t.key ? 'on' : ''}
+                                onClick={() =>
+                                  setTones((prev) => {
+                                    const next = { ...prev }
+                                    if (next[r.id] === t.key) delete next[r.id]
+                                    else next[r.id] = t.key
+                                    return next
+                                  })
+                                }
+                              >
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       ))}
+                      <small>말투는 어떻게 쓸지만 바꿔요. 무엇이 가는지는 그대로예요</small>
                     </div>
+
+                    <label className="bab-opt">
+                      <span>내 말투 예시 (줄마다 한 문장)</span>
+                      <textarea
+                        className="bab-input"
+                        id="bab-voice"
+                        rows={2}
+                        value={voice}
+                        maxLength={240}
+                        placeholder={'예: 오늘도 화이팅 ㅎㅎ\n밥 잘 챙겨 먹는 중!'}
+                        onChange={(e) => setVoice(e.target.value)}
+                      />
+                      <small>이 말버릇을 따라 써요. 최대 {MAX_VOICE}문장</small>
+                    </label>
 
                     <button type="button" className="bab-cta" onClick={() => setSheetOpen(false)}>
                       완료
