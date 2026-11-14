@@ -8,8 +8,8 @@
       "data": {
         "child": "민지",
         "recipients": [
-          { "id": "mom", "name": "엄마", "items": ["meal", "home", "mood"], "channel": "kakao" },
-          { "id": "dad", "name": "아빠", "items": ["home"], "channel": "sms" }
+          { "id": "mom", "name": "엄마", "items": ["meal", "home", "mood", "note"], "channel": "kakao" },
+          { "id": "dad", "name": "아빠", "items": ["home", "note"], "channel": "sms" }
         ]
       }
     },
@@ -64,7 +64,7 @@
             "to": "mom",
             "name": "엄마",
             "channel": "kakao",
-            "items": ["meal", "home", "mood"],
+            "items": ["meal", "home", "mood", "note"],
             "summary": "🍚 점심 김치찌개 먹음 · 🏠 9시 귀가 · 😪 조금 피곤",
             "text": "엄마~ 점심에 김치찌개 든든하게 먹었고 9시에 집 잘 들어왔어. 오늘은 좀 피곤해서 일찍 잘게!"
           },
@@ -72,7 +72,7 @@
             "to": "dad",
             "name": "아빠",
             "channel": "sms",
-            "items": ["home"],
+            "items": ["home", "note"],
             "summary": "🏠 9시 귀가",
             "text": "아빠, 9시에 집 잘 들어왔어요."
           }

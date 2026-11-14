@@ -26,7 +26,7 @@
     {
       "id": "mom",
       "name": "엄마",
-      "items": ["meal", "home", "mood"],
+      "items": ["meal", "home", "mood", "note"],
       "tone": "다정하고 구체적으로, 반말",
       "channel": "kakao",
       "fontScale": 1.3
@@ -34,7 +34,7 @@
     {
       "id": "dad",
       "name": "아빠",
-      "items": ["home"],
+      "items": ["home", "note"],
       "tone": "짧게, 존댓말",
       "channel": "sms",
       "fontScale": 1.3

@@ -55,7 +55,7 @@ def test_compose_makes_one_message_per_recipient() -> None:
 def test_dad_message_carries_no_mood() -> None:
     out = service.run_compose(_with_facts("t-dad"))
     dad = next(m for m in out["messages"] if m["to"] == "dad")
-    assert dad["items"] == ["home"]
+    assert "mood" not in dad["items"]  # 아빠는 기분을 받지 않는다 (note·home 은 받을 수 있음)
     for w in MOOD_WORDS:
         assert w not in dad["text"], w
         assert w not in dad["summary"], w
