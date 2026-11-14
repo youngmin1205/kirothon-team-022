@@ -87,6 +87,12 @@ export const Sliders = (p: P) => (
   </Svg>
 )
 
+export const ChevronLeft = (p: P) => (
+  <Svg {...p}>
+    <path d="M15 5 8 12l7 7" />
+  </Svg>
+)
+
 export const X = (p: P) => (
   <Svg {...p}>
     <path d="M6 6l12 12M18 6 6 18" />

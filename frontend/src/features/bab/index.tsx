@@ -28,7 +28,7 @@ import type { Attachment } from '../../types/api'
 import type { BabBeats, BeatId, ButtonKey, Check as CheckT, ItemKey, Mood, MoodKey, ToneKey } from './types'
 import { BEAT_ORDER } from './types'
 import { CHILD_NAME, ITEMS, MOOD_OPTIONS, PARENT_BUTTONS, PHOTO_EMOJI, RECIPIENTS, SAY, TONE_OPTIONS, MAX_VOICE } from './constants'
-import { Avatar, Bowl, Camera, Check, Lock, Pencil, Send, Sliders, X } from './icons'
+import { Avatar, ChevronLeft, Bowl, Camera, Check, Lock, Pencil, Send, Sliders, X } from './icons'
 import { MomLinkPage } from './remote'
 import { fetchLink, momLink, readView, shareMessage, type View } from './remote-link'
 import './bab.css'
@@ -186,6 +186,21 @@ function BabDuo({ view }: { view: View }) {
     await send(sayOf('judge'), { files: photos.length ? photos : undefined })
   }
 
+  /**
+   * 뒤로가기. 서버 세션은 앞으로만 가므로, 세션을 처음으로 돌리고 직접 고른 값(사진·기분·고친 항목)은
+   * 그대로 둔 채 필요한 단계까지 다시 보낸다. 보낸 뒤(sent)에는 되돌리지 않는다.
+   *   확인 → 오늘: 세션만 처음으로
+   *   미리보기 → 확인: 처음으로 돌린 뒤 사진을 다시 판정 (고친 항목은 그대로 덮인다)
+   */
+  const goBack = async () => {
+    if (busy) return
+    setEditing(null)
+    setSheetOpen(false)
+    await reset()
+    if (childStep === 'preview') await askAI()
+  }
+  const canBack = !running && (childStep === 'check' || childStep === 'preview')
+
   const confirm = async () => {
     setEditing(null)
     await send(sayOf('confirm'), {
@@ -286,6 +301,11 @@ function BabDuo({ view }: { view: View }) {
           <PhoneFrame>
             <div className="bab-app" id="bab-child" data-step={childStep}>
               <header className="bab-appbar">
+                {canBack ? (
+                  <button type="button" className="bab-back" id="bab-back" aria-label="뒤로" disabled={busy} onClick={() => void goBack()}>
+                    <ChevronLeft size={24} />
+                  </button>
+                ) : null}
                 <span className="bab-brand">
                   <Bowl size={22} />
                   밥은 먹었니
@@ -847,6 +867,11 @@ function BabDuo({ view }: { view: View }) {
             {parentView === 'link' ? (
               <div className="bab-app bab-link" id="bab-react" data-section="react">
                 <header className="bab-urlbar">
+                  {!reached('react') ? (
+                    <button type="button" className="bab-back" id="bab-link-back" aria-label="대화방으로" onClick={() => setLinkOpen(false)}>
+                      <ChevronLeft size={22} />
+                    </button>
+                  ) : null}
                   <Lock size={13} /> {hostOf(d.deliver?.link)}
                 </header>
                 <div className="bab-scroll">

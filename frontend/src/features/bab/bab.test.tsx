@@ -206,4 +206,17 @@ describe('밥은 먹었니', () => {
     expect(q('#bab-note')).not.toBeNull()
     expect(document.querySelectorAll('[data-who]')).toHaveLength(2)
   })
+
+  it('뒤로가기: 확인 화면에서 오늘 화면으로 돌아가도 고른 기분이 남는다', async () => {
+    const user = userEvent.setup()
+    render(<BabView />)
+    await waitFor(() => expect(document.querySelectorAll('[data-beat]')).toHaveLength(8))
+    expect(q('#bab-back')).toBeNull()
+    await user.click(screen.getByRole('radio', { name: /피곤해/ }))
+    await user.click(q('#bab-cta') as HTMLElement)
+    await waitFor(() => expect(q('#bab-child')).toHaveAttribute('data-step', 'check'))
+    await user.click(q('#bab-back') as HTMLElement)
+    await waitFor(() => expect(q('#bab-child')).toHaveAttribute('data-step', 'today'))
+    expect(screen.getByRole('radio', { name: /피곤해/ })).toHaveAttribute('aria-checked', 'true')
+  })
 })

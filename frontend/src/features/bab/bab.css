@@ -386,3 +386,15 @@ textarea.bab-input { resize: none; font-family: inherit; line-height: 1.45; }
 /* 첫 화면에서 보이는 말투 진입점 (＋ 시트를 연다) */
 .bab-persona-link { display: flex; align-items: center; gap: 6px; margin: 0 20px -4px; padding: 10px 14px; border: 1px dashed rgba(232, 97, 60, 0.45); border-radius: 14px; background: rgba(232, 97, 60, 0.06); color: var(--bab-persimmon); font-size: 14px; font-weight: 800; text-align: left; }
 .bab-persona-link span { margin-left: auto; font-size: 18px; }
+
+/* 뒤로가기 — 자녀 폰(확인·미리보기 화면)과 엄마 폰 링크 페이지 */
+.bab-appbar:has(.bab-back) { justify-content: flex-start; gap: 6px; }
+.bab-appbar:has(.bab-back) .bab-progress { margin-left: auto; }
+.bab-back {
+  display: inline-grid; place-items: center; width: 36px; height: 36px; margin-left: -8px; padding: 0;
+  border: 0; border-radius: 12px; background: transparent; color: var(--bab-ink); cursor: pointer;
+}
+.bab-back:hover { background: rgba(43, 33, 24, 0.06); }
+.bab-back:disabled { opacity: 0.4; cursor: default; }
+.bab-urlbar { position: relative; }
+.bab-urlbar .bab-back { position: absolute; left: 10px; bottom: 4px; margin: 0; }
