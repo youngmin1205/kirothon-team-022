@@ -9,7 +9,7 @@
 # 자원 (2026-11-14 생성)
 #   EC2         i-08d65295cc85c0a55 (t3.small, Name=bab-demo)
 #   주소        https://d19xe2a33mtra6.cloudfront.net/?feature=bab
-#   IAM 역할    bab-demo-ec2 (Sonnet 4.5 호출 + S3 번들 읽기 + SSM)
+#   IAM 역할    bab-demo-ec2 (Sonnet 5.5 호출 + S3 번들 읽기 + SSM)
 #   보안 그룹   sg-00b804c47a550b7b2 (80번, CloudFront 에서만)
 #   S3          bab-demo-767398015333-usw2/bab.tgz
 #
