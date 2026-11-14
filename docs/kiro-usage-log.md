@@ -45,6 +45,14 @@
 > 기획 문서(product.md·idea-cards·idea-selection)와 계약 파일(mock.json·profiles.json·계약 테스트)은
 > 13:00~13:50 에 Claude Code 로 작성했다. spec 3파일과 task 1 부터 Kiro 로 진행했다.
 
-### 15:30
+### 15:30 (채연 / BE)
 
-### 17:00
+- `15:10 | Spec tasks(3·4) + Custom agent build | kiro-cli --agent build 로 service.py 의 judge·compose 에이전트를 spec 수락기준(R2·R4·R5)에 맞춰 구현. task 마다 _요구사항: R#_ 로 "끝"의 기준이 박혀 있다 | 스펙→코드가 1:1로 이어져 구두 합의 없이 진행, 리뷰·검증이 빨라짐`
+- `15:20 | Spec 경계 설계(세션 분업) | service.py 가 STEPS·run_judge·run_compose 를 인터페이스로 노출 → 다른 Kiro 세션이 import 해 router(task 2)를 구현. 같은 파일을 동시에 안 고침 | 두 세션 병렬 작업이 충돌 없이 합쳐짐. 인터페이스를 먼저 고정해 중복 구현이 생겨도 한쪽만 버리고 나머지는 보존`
+- `15:30 | live 검증(USE_MOCK=0 · Bedrock) | 실제 모델로 8구간 1회 완주. judge·compose 가 폴백 없이 돌고, 아빠 메시지에 기분 0건(R4-2)을 live 에서 재확인 | mock 재생과 달리 "실제 모델에서도 수락기준이 지켜진다"를 증거로 확보`
+
+### 17:00 (채연 / BE)
+
+- `16:40 | Spec-first 기능 추가(R9) | 범위 밖이던 "받는 사람 말투·호칭·보이스"를 requirements→코드→테스트 순으로 추가. 불변식 테스트로 "말투를 바꿔도 걸러진 기분은 다시 안 들어온다"를 보장. FE(＋시트 말투 칩·호칭 입력)까지 붙어 end-to-end 동작 | 말투는 AI·공개여부는 코드 — 신뢰 포인트를 테스트로 증명`
+- `16:55 | Hooks(PostTaskExec 리뷰) + 멀티세션 충돌 병합 | task 완료마다 리뷰 훅이 돎. 팀원의 사실검증 로직과 내 R9 변경이 겹친 rebase 충돌을 양쪽 다 살려 병합 | 여러 세션 동시 작업에서도 데모를 안 깨고 통합`
+- `17:00 | 실측 | 완료 task 10/11 · 테스트 64개 통과 · ruff·pytest·pnpm smoke green · live judge·compose 정상`
