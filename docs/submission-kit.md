@@ -62,7 +62,7 @@ npm --prefix deliverables run ppt
 - [ ] **영상 파일은 레포에 올리지 않는다.** 업로드 후 `README.md` 6행의 주석을 지우고 Demo 줄 끝에 `**영상:** <링크>` 한 줄만 추가
 - [ ] 영상 링크 공개 범위 확인: YouTube **일부 공개**, 또는 드라이브 **링크가 있는 모든 사용자 · 뷰어**
       (로그아웃한 창에서 열리는지 직접 확인)
-- [ ] 슬라이드·영상의 숫자는 README·BUILD_REPORT 와 같아야 한다 → **백엔드 테스트 64 · 프런트 30 · spec task 11 · 요구사항 R1~R8**
+- [ ] 슬라이드·영상의 숫자는 README·BUILD_REPORT 와 같아야 한다 → **백엔드 테스트 64 · 프런트 30 · spec task 11 · 요구사항 R1~R9**
 
 ### 배포 URL (필요할 때만, 2분)
 
@@ -116,7 +116,7 @@ Amazon Bedrock (Claude, Converse API) / Kiro CLI
 **Kiro 활용** (`docs/kiro-usage-log.md` 에서 요약)
 
 ```
-- spec 기반 개발: 요구사항 R1~R8 과 수락 기준을 먼저 만들고 task 11개에 L/BE/FE 라벨을 붙여 3명이 병렬 작업
+- spec 기반 개발: 요구사항 R1~R9 과 수락 기준을 먼저 만들고 task 11개에 L/BE/FE 라벨을 붙여 3명이 병렬 작업
 - 수락 기준 → 테스트: 백엔드 64개 · 프런트 30개가 통과. "아빠 메시지에 기분 0건" 같은 기준이 실행 가능한 테스트로 남음
 - live 버그를 코드가 아니라 수락 기준부터 고침: R2-3 보강 · R4-5 · R4-6 신설 후 테스트 추가
 - steering 으로 팀 규칙 공유(공용 파일 소유권·포트·#play·data-beat 고정) → 체크포인트마다 smoke 통과
