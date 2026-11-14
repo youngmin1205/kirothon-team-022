@@ -45,29 +45,29 @@
   - `tests/test_bab_flow.py`: 아빠용 `text`·`summary` 에 기분 표현 0건, 엄마용과 아빠용이 다름
   - _요구사항: R4, R5, R3-3_
 
-- [ ] **5. 화면 틀 (8구간이 보인다)** — `FE`
+- [x] **5. 화면 틀 (8구간이 보인다)** — `FE`
   - `frontend/src/features/bab/index.tsx` + `src/features/registry.ts` 한 줄
     (label `밥은 먹었니`, layout `phone`)
   - 자녀 폰 · 부모님 폰 두 대. `useDemo({ feature: 'bab' })` 의 `dataByBeat` 로 구간마다 그린다
   - `id="play"` · `data-beat` · `data-state` 신호는 건드리지 않는다
   - _요구사항: R1-1·5_
 
-- [ ] **6. `upload` — 사진 선택 + 기분 버튼** — `FE`
+- [x] **6. `upload` — 사진 선택 + 기분 버튼** — `FE`
   - `FilePick` 으로 사진 1~3장, 기분 버튼 6개(😊 🙂 😪 😵 🤒 ✏️), `custom` 선택 시 입력칸
   - `docs/work-split.md` 2장 형식으로 `send(text, { files, payload })`
   - _요구사항: R3-1·2_
 
-- [ ] **7. `judge`·`confirm` — 칩 표시와 수정** — `FE`
+- [x] **7. `judge`·`confirm` — 칩 표시와 수정** — `FE`
   - `Chip` 으로 `checks` 를 그린다. `status` 세 값이 구분된다
   - 눌러서 수정한 값이 `confirm` 의 `payload.checks` 로 간다
   - _요구사항: R2-1·2_
 
-- [ ] **8. `compose`·`deliver` — 두 메시지와 부모님 폰** — `FE`
+- [x] **8. `compose`·`deliver` — 두 메시지와 부모님 폰** — `FE`
   - 엄마용·아빠용 카드를 나란히. 항목과 말투가 다른 것이 보인다
   - 부모님 폰에 말풍선 본문 + 링크 미리보기 카드. 큰 글씨(`fontScale`)
   - _요구사항: R5-1·2·3, R6-1·2·3_
 
-- [ ] **9. `react`·`reply` — 부모님 버튼과 축하 연출** — `FE`
+- [x] **9. `react`·`reply` — 부모님 버튼과 축하 연출** — `FE`
   - 부모님 버튼 5개, 누른 값이 `payload.pressed` 로 간다
   - 자녀 폰에 `Toast` "엄마도 밥 드셨대요". `celebrate` 는 `reply` 에서 **한 번만**
   - _요구사항: R7-2·4_

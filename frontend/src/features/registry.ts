@@ -11,6 +11,7 @@
 import type { ComponentType } from 'react'
 import type { Layout } from '../app/Shell'
 import { SampleView } from './sample'
+import { BabView } from './bab'
 
 export interface FeatureDef {
   /** 백엔드 폴더 이름과 같아야 한다 (/api/<name>/…) */
@@ -29,6 +30,7 @@ export const features: FeatureDef[] = [
     layout: 'phone',
     View: SampleView,
   },
+  { name: 'bab', label: '밥은 먹었니', subtitle: '사진 한 번, 기분 버튼 하나로 엄마·아빠에게 각자 맞는 안부', layout: 'phone', View: BabView },
 ]
 
 export function findFeature(name?: string | null): FeatureDef {

@@ -1,0 +1,345 @@
+/* 밥은 먹었니 — 기능 전용 스타일. 클래스는 bab- 로 시작하고, 전역 토큰(tokens.css)은 고치지 않는다.
+
+   세계관: 저녁 식탁. 크림색 무대 위에 따뜻한 감빛 하나, 차분한 먹색 글자.
+   - 무대는 이 화면에서만 밝힌다 (body:has(#bab-duo)). 다른 기능은 원래 어두운 템플릿 그대로
+   - 감빛(--bab-persimmon)은 우리 앱, 노랑은 카톡 장면에만 쓴다. 둘이 섞이면 누구 화면인지 모른다
+   - 글자는 Pretendard 를 직접 싣는다 (frontend/public/fonts). 최소 13px, 부모님 화면은 19px 이상
+   - 모션은 한 번의 "도착"에 집중한다: 엄마 알림 → 버튼 눌림 → 엄마도 밥 드셨대요 */
+
+@font-face { font-family: 'BabSans'; src: url('/fonts/Pretendard-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'BabSans'; src: url('/fonts/Pretendard-SemiBold.otf') format('opentype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'BabSans'; src: url('/fonts/Pretendard-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'BabSans'; src: url('/fonts/Pretendard-ExtraBold.otf') format('opentype'); font-weight: 800; font-display: swap; }
+
+/* ── 무대 ─────────────────────────────────────────────────── */
+body:has(#bab-duo) {
+  background:
+    radial-gradient(900px 520px at 22% 12%, rgba(242, 179, 61, 0.16), transparent 62%),
+    radial-gradient(760px 520px at 82% 88%, rgba(232, 97, 60, 0.1), transparent 60%),
+    #f6efe4;
+  color: #2b2118;
+}
+body:has(#bab-duo) ::selection { background: rgba(232, 97, 60, 0.22); }
+
+.bab-stage {
+  --bab-ink: #2b2118;
+  --bab-ink2: #5e5247;
+  --bab-ink3: #7a6d61;
+  --bab-paper: #fffdf9;
+  --bab-rice: #f7f2ea;
+  --bab-line: rgba(43, 33, 24, 0.1);
+  --bab-persimmon: #e8613c;
+  --bab-persimmon-deep: #c94a27;
+  --bab-persimmon-wash: #fdeee7;
+  --bab-leaf: #2f7d55;
+  --bab-leaf-wash: #e8f4ec;
+  --bab-kakao: #fee500;
+  --bab-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: flex; gap: 160px; justify-content: center; align-items: flex-start; flex-wrap: wrap;
+  font-family: 'BabSans', var(--font);
+  color: var(--bab-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.bab-stage * { font-family: inherit; }
+
+.bab-device {
+  margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px;
+  transition: opacity 0.6s var(--bab-ease), transform 0.6s var(--bab-ease), filter 0.6s var(--bab-ease);
+}
+.bab-device[data-dim='true'] { opacity: 0.66; transform: scale(0.965); filter: saturate(0.8); }
+.bab-device figcaption { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--bab-ink2); }
+
+/* 폰 틀: 전역 .phone 을 이 무대에서만 따뜻하게, 조금 크게 */
+.bab-device .phone {
+  width: 356px; height: 724px; border-radius: 48px; border: 9px solid #2a211b; background: #2a211b;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4) inset, 0 34px 70px -18px rgba(86, 52, 22, 0.38), 0 10px 22px -8px rgba(86, 52, 22, 0.22);
+}
+.bab-device .phone .screen { background: var(--bab-rice); color: var(--bab-ink); border-radius: 39px; }
+.bab-device .phone .notch { width: 108px; height: 28px; top: 10px; border-radius: 16px; background: #120d0a; }
+
+/* 보내는 순간 두 폰 사이를 나는 안부 */
+.bab-relay {
+  position: absolute; top: 330px; left: 50%; width: 52px; height: 52px; margin-left: -26px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--bab-persimmon); color: #fff;
+  box-shadow: 0 12px 24px -8px rgba(201, 74, 39, 0.6); opacity: 0; pointer-events: none;
+}
+.bab-relay.fly { animation: babFly 1.1s var(--bab-ease) both; }
+@keyframes babFly {
+  0% { opacity: 0; transform: translateX(-130px) scale(0.6); }
+  25% { opacity: 1; }
+  80% { opacity: 1; transform: translateX(110px) scale(1); }
+  100% { opacity: 0; transform: translateX(150px) scale(0.7); }
+}
+
+/* ── 앱 공통 ──────────────────────────────────────────────── */
+.bab-app { position: relative; display: flex; flex-direction: column; height: 100%; background: var(--bab-rice); }
+.bab-scroll { flex: 1; overflow-y: auto; padding: 8px 20px 20px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: none; }
+.bab-scroll::-webkit-scrollbar { display: none; }
+.bab-app button { cursor: pointer; color: inherit; }
+.bab-app button:disabled { cursor: default; }
+.bab-app :focus-visible { outline: 3px solid rgba(232, 97, 60, 0.45); outline-offset: 2px; }
+.bab-icon { flex: none; display: block; }
+
+.bab-appbar { padding: 50px 20px 10px; display: flex; align-items: center; justify-content: space-between; }
+.bab-brand { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--bab-persimmon); }
+.bab-progress { display: flex; gap: 4px; }
+.bab-progress i { width: 16px; height: 4px; border-radius: 2px; background: rgba(43, 33, 24, 0.12); transition: background 0.4s var(--bab-ease); }
+.bab-progress i.on { background: var(--bab-persimmon); }
+.bab-progress i.on:last-of-type, .bab-progress i.on:has(+ i:not(.on)) { width: 24px; }
+
+.bab-hero { padding-top: 6px; }
+.bab-hero h2 { margin: 0; font-size: 25px; line-height: 1.32; font-weight: 800; letter-spacing: -0.03em; text-wrap: balance; }
+.bab-hero p { margin: 6px 0 0; font-size: 15px; color: var(--bab-ink2); }
+
+.bab-avatar {
+  flex: none; display: inline-grid; place-items: center; border-radius: 50%; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+}
+.bab-avatar.mom { background: #f8d9cf; color: #9c3b1e; }
+.bab-avatar.dad { background: #d9e4ee; color: #34506b; }
+.bab-avatar.child { background: #f6e2b4; color: #7a5410; }
+
+.bab-to { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bab-to-person { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; }
+.bab-to-label { font-size: 15px; color: var(--bab-ink2); margin-left: -4px; }
+
+.bab-block { display: flex; flex-direction: column; }
+.bab-block h3 { margin: 14px 0 10px; font-size: 14px; font-weight: 700; color: var(--bab-ink2); }
+.bab-block h3:first-child { margin-top: 2px; }
+.bab-error { margin: 8px 0 0; font-size: 14px; color: var(--bab-persimmon-deep); }
+
+/* 사진 */
+.bab-photos { display: flex; gap: 10px; }
+.bab-photo {
+  position: relative; width: 96px; height: 96px; border-radius: 20px; border: 0; padding: 0; overflow: hidden;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  font-size: 13px; font-weight: 700; color: #6b4f2a; background: #efe2cc;
+}
+.bab-photo b { font-size: 34px; line-height: 1; font-weight: 400; }
+.bab-photo.add { background: var(--bab-paper); color: var(--bab-ink2); border: 1.5px dashed rgba(43, 33, 24, 0.22); }
+.bab-photo.has-img img { width: 100%; height: 100%; object-fit: cover; }
+.bab-x { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgba(20, 14, 10, 0.6); color: #fff !important; }
+
+/* 기분 */
+.bab-moods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bab-mood {
+  min-height: 64px; padding: 8px 4px; border-radius: 18px; border: 1.5px solid transparent; background: var(--bab-paper);
+  font-size: 14px; font-weight: 600; color: var(--bab-ink2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  box-shadow: 0 1px 2px rgba(43, 33, 24, 0.06);
+  transition: border-color 0.2s, background 0.2s, transform 0.35s var(--bab-ease);
+}
+.bab-mood span { font-size: 24px; line-height: 1.1; }
+.bab-mood.picked { border-color: var(--bab-persimmon); background: var(--bab-persimmon-wash); color: var(--bab-ink); font-weight: 800; transform: translateY(-2px); }
+.bab-input {
+  width: 100%; margin-top: 10px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--bab-line);
+  background: var(--bab-paper); color: var(--bab-ink); font-size: 15px; caret-color: var(--bab-persimmon);
+}
+.bab-input::placeholder { color: var(--bab-ink3); }
+
+/* 들어오는 차례: --n 번째로 0.35초 간격 */
+.pop { animation: babRise 0.55s var(--bab-ease) calc(var(--n, 0) * 350ms) both; }
+@keyframes babRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* 확인 */
+.bab-reading { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--bab-ink2); animation: babFadeOut 0.4s ease 0.6s both; }
+@keyframes babFadeOut { to { opacity: 0; height: 0; margin: -7px 0; } }
+.bab-dots { display: inline-flex; gap: 3px; }
+.bab-dots b { width: 6px; height: 6px; border-radius: 50%; background: var(--bab-persimmon); animation: babDot 1s ease-in-out infinite; }
+.bab-dots b:nth-child(2) { animation-delay: 0.15s; }
+.bab-dots b:nth-child(3) { animation-delay: 0.3s; }
+@keyframes babDot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+.bab-checks { display: flex; flex-direction: column; gap: 10px; }
+.bab-check {
+  position: relative; width: 100%; text-align: left; padding: 16px; border-radius: 20px; border: 1.5px solid transparent;
+  background: var(--bab-paper); display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 2px rgba(43, 33, 24, 0.06);
+}
+.bab-check-emoji { font-size: 32px; line-height: 1; }
+.bab-check-body { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.bab-check-head { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; }
+.bab-check small { font-size: 15px; color: var(--bab-ink2); }
+.bab-status { display: inline-flex; align-items: center; gap: 3px; padding: 3px 9px; border-radius: 999px; font-style: normal; font-size: 13px; font-weight: 700; }
+.bab-status.done { background: var(--bab-leaf-wash); color: var(--bab-leaf); }
+.bab-status.not_yet, .bab-status.unknown { background: rgba(43, 33, 24, 0.07); color: var(--bab-ink2); }
+.bab-pencil { color: var(--bab-ink3); }
+.bab-editor { padding: 10px 4px 2px; }
+.bab-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(43, 33, 24, 0.07); }
+.bab-seg button { min-height: 40px; border: 0; border-radius: 11px; background: transparent; font-size: 15px; color: var(--bab-ink2); }
+.bab-seg button.on { background: var(--bab-paper); color: var(--bab-ink); font-weight: 800; box-shadow: 0 1px 3px rgba(43, 33, 24, 0.14); }
+.bab-confirmed { margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: var(--bab-leaf); animation: babRise 0.45s var(--bab-ease) both; }
+.bab-mood-line {
+  margin: 0; padding: 14px 16px; border-radius: 20px; background: var(--bab-paper); display: flex; gap: 12px; align-items: center;
+  font-size: 16px; font-weight: 700; box-shadow: 0 1px 2px rgba(43, 33, 24, 0.06);
+}
+.bab-mood-line > span:first-child { font-size: 28px; }
+.bab-mood-line small { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--bab-ink3); }
+
+/* 미리보기 */
+.bab-msgs { display: flex; flex-direction: column; gap: 12px; }
+.bab-msg { background: var(--bab-paper); border-radius: 22px; padding: 16px; box-shadow: 0 1px 2px rgba(43, 33, 24, 0.06), 0 10px 24px -16px rgba(86, 52, 22, 0.3); }
+.bab-msg header { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.bab-msg header small { margin-left: auto; font-size: 13px; color: var(--bab-ink3); }
+.bab-msg-text { margin: 10px 0 12px; font-size: 16px; line-height: 1.55; }
+.bab-msg-items { display: flex; gap: 6px; flex-wrap: wrap; }
+.bab-tag { padding: 5px 10px; border-radius: 999px; background: var(--bab-persimmon-wash); font-size: 13px; font-weight: 700; color: var(--bab-persimmon-deep); }
+.bab-why {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(43, 33, 24, 0.05);
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; font-size: 14px; font-weight: 700; color: var(--bab-ink2);
+}
+.bab-omitted { grid-column: 2; display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; font-weight: 600; color: var(--bab-ink3); }
+.bab-omitted s { text-decoration-thickness: 1.5px; }
+
+/* 보냄 */
+.bab-sent { margin: auto 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; animation: babRise 0.55s var(--bab-ease) both; }
+.bab-sent-icon { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; background: var(--bab-persimmon); color: #fff; box-shadow: 0 16px 30px -12px rgba(201, 74, 39, 0.6); }
+.bab-sent h2 { margin: 14px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+.bab-sent-time { margin: 0; font-size: 15px; color: var(--bab-ink3); font-variant-numeric: tabular-nums; }
+.bab-sent-list { width: 100%; margin: 18px 0 8px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.bab-sent-list li { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 18px; background: var(--bab-paper); font-size: 16px; text-align: left; }
+.bab-sent-list li span { color: var(--bab-ink3); font-size: 14px; }
+.bab-sent-list li .bab-icon { margin-left: auto; color: var(--bab-leaf); }
+.bab-wait { margin: 6px 0 0; display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--bab-ink2); }
+
+/* 정점: 엄마도 밥 드셨대요 */
+.bab-peak {
+  position: relative; margin: auto 0; padding: 28px 12px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+}
+.bab-peak-meta { font-size: 14px; color: var(--bab-ink3); font-variant-numeric: tabular-nums; }
+.bab-peak-avatar { position: relative; }
+.bab-peak-avatar i { position: absolute; right: -6px; bottom: -4px; font-style: normal; font-size: 32px; }
+.bab-peak-title { font-size: 30px; line-height: 1.25; font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; }
+.bab-peak-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.bab-chip { padding: 9px 14px; border-radius: 999px; background: var(--bab-paper); font-size: 15px; font-weight: 700; box-shadow: 0 1px 2px rgba(43, 33, 24, 0.08); }
+.bab-peak-end { margin: 18px 0 0; font-size: 16px; font-weight: 700; color: var(--bab-persimmon-deep); }
+.bab-peak.celebrate .bab-peak-avatar { animation: babHeart 0.9s var(--bab-ease) both; }
+.bab-peak.celebrate .bab-peak-title { animation: babRise 0.6s var(--bab-ease) 0.25s both; }
+.bab-peak.celebrate .bab-peak-chips { animation: babRise 0.6s var(--bab-ease) 0.5s both; }
+.bab-peak.celebrate .bab-peak-end { animation: babRise 0.6s var(--bab-ease) 1.1s both; }
+@keyframes babHeart { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+.bab-confetti { position: absolute; inset: -20px 0 0; pointer-events: none; }
+.bab-confetti i {
+  position: absolute; top: 34%; left: var(--x); width: 9px; height: 14px; border-radius: 3px; opacity: 0;
+  animation: babBurst 1.8s var(--bab-ease) var(--d) both;
+}
+@keyframes babBurst {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc((var(--x) - 50%) * 0.35), 170px) rotate(var(--r)); }
+}
+
+/* 아래 고정 버튼 */
+.bab-footer { display: flex; gap: 10px; padding: 12px 20px 26px; background: linear-gradient(180deg, rgba(247, 242, 234, 0), var(--bab-rice) 28%); }
+.bab-cta {
+  flex: 1; min-height: 58px; border: 0; border-radius: 20px; background: var(--bab-persimmon); color: #fff !important;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 17px; font-weight: 800; letter-spacing: -0.02em;
+  box-shadow: 0 12px 22px -12px rgba(201, 74, 39, 0.7);
+  transition: transform 0.15s var(--bab-ease), background 0.2s, box-shadow 0.2s;
+}
+.bab-cta:active:not(:disabled) { transform: scale(0.98); }
+.bab-cta:disabled { background: #e6dccf; color: var(--bab-ink2) !important; box-shadow: none; }
+/* 대본 재생 중에는 잠겨 있어도 또렷하게 둔다. 흐리면 영상에서 고장 난 버튼처럼 보인다 */
+.bab-cta.demo:disabled { background: var(--bab-persimmon); color: #fff !important; box-shadow: 0 12px 22px -12px rgba(201, 74, 39, 0.7); }
+.bab-cta.big { flex: none; width: 100%; min-height: 62px; font-size: 20px; }
+.bab-more {
+  width: 58px; min-height: 58px; border: 0; border-radius: 20px; background: var(--bab-paper); display: grid; place-items: center;
+  box-shadow: 0 1px 2px rgba(43, 33, 24, 0.1);
+}
+.bab-more[aria-expanded='true'] { background: var(--bab-ink); color: #fff !important; }
+
+/* 조절 시트 */
+.bab-sheet-wrap { position: absolute; inset: 0; background: rgba(30, 20, 12, 0.32); display: flex; align-items: flex-end; z-index: 3; animation: babFade 0.2s ease both; }
+@keyframes babFade { from { opacity: 0; } to { opacity: 1; } }
+.bab-sheet {
+  width: 100%; max-height: 84%; overflow-y: auto; background: var(--bab-paper); border-radius: 28px 28px 0 0;
+  padding: 10px 20px 26px; display: flex; flex-direction: column; gap: 16px; animation: babUp 0.35s var(--bab-ease) both;
+}
+@keyframes babUp { from { transform: translateY(48px); } to { transform: none; } }
+.bab-grabber { align-self: center; width: 38px; height: 5px; border-radius: 3px; background: rgba(43, 33, 24, 0.18); }
+.bab-sheet h3 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+.bab-opt { display: flex; flex-direction: column; gap: 8px; font-size: 15px; font-weight: 700; }
+.bab-opt > small { font-weight: 400; font-size: 13px; color: var(--bab-ink3); }
+.bab-opt .bab-input { margin-top: 0; font-weight: 400; }
+.bab-who { display: grid; grid-template-columns: auto 1fr; gap: 8px 10px; align-items: center; padding: 12px; border-radius: 16px; background: var(--bab-rice); font-weight: 400; }
+.bab-who b { display: block; font-size: 15px; }
+.bab-who small { font-size: 13px; color: var(--bab-ink3); }
+.bab-who ul { grid-column: 1 / -1; margin: 0; padding: 0; list-style: none; display: flex; gap: 6px; flex-wrap: wrap; }
+.bab-who li { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.bab-who li.yes { background: var(--bab-leaf-wash); color: var(--bab-leaf); }
+.bab-who li.no { background: rgba(43, 33, 24, 0.06); color: var(--bab-ink3); }
+
+/* ── 엄마 폰: 잠금 화면 + 알림 ─────────────────────────────── */
+.bab-lock {
+  height: 100%; display: flex; flex-direction: column; align-items: center; padding: 96px 14px 0; gap: 2px;
+  background: radial-gradient(120% 70% at 50% 0%, #6d4c3a 0%, #3a2a22 55%, #221812 100%); color: #fbf3ea;
+}
+.bab-clock { font-size: 76px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.bab-date { font-size: 16px; font-weight: 600; opacity: 0.85; margin-top: 6px; }
+.bab-lock-empty { margin-top: auto; margin-bottom: 64px; font-size: 14px; opacity: 0.7; }
+.bab-notify {
+  width: 100%; margin-top: 34px; padding: 14px 16px; border-radius: 22px; text-align: left;
+  background: rgba(255, 250, 244, 0.86); color: #24190f; backdrop-filter: blur(14px);
+  display: flex; flex-direction: column; gap: 2px; box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.5);
+  animation: babDrop 0.6s var(--bab-ease) both;
+}
+@keyframes babDrop { from { opacity: 0; transform: translateY(-36px) scale(0.96); } to { opacity: 1; transform: none; } }
+.bab-notify-app { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6a5a4c; }
+.bab-notify-app i { width: 18px; height: 18px; border-radius: 5px; background: var(--bab-kakao); }
+.bab-notify-app i.sms { background: #4cc764; }
+.bab-notify b { font-size: 17px; margin-top: 4px; }
+.bab-notify-body { font-size: 17px; line-height: 1.45; }
+
+/* ── 엄마 폰: 대화방 (알림 1.6초 뒤에 열림) ─────────────────── */
+.bab-chat { position: absolute; inset: 0; background: #bacee0; animation: babOpen 0.55s var(--bab-ease) 1.6s both; }
+@keyframes babOpen { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+.bab-chatbar { padding: 50px 16px 12px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; background: rgba(186, 206, 224, 0.94); }
+.bab-chatbar.sms { background: #fff; }
+.bab-bubble-row { display: flex; align-items: flex-end; gap: 6px; }
+.bab-bubble {
+  max-width: 82%; padding: 13px 15px; border-radius: 6px 20px 20px 20px; background: #fff; color: #191919;
+  white-space: pre-line; overflow-wrap: anywhere; font-size: 18px; line-height: 1.5;
+}
+.bab-time { font-size: 12px; color: #4c5866; font-variant-numeric: tabular-nums; }
+.bab-preview {
+  align-self: flex-start; width: 82%; padding: 0; border: 0; text-align: left; background: #fff; color: #191919 !important;
+  border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; font-size: 17px;
+}
+.bab-preview strong, .bab-preview > span:not(.bab-preview-img), .bab-preview em { padding: 0 16px; }
+.bab-preview strong { padding-top: 12px; }
+.bab-preview > span:not(.bab-preview-img) { color: #4c4c4c; font-size: 16px; margin-top: 2px; }
+.bab-preview em { font-style: normal; margin: 12px 0 0; padding-top: 12px; padding-bottom: 13px; border-top: 1px solid #eee; text-align: center; font-weight: 700; font-size: 16px; }
+.bab-preview-img { height: 110px; display: grid; place-items: center; font-size: 52px; background: linear-gradient(160deg, #f6dcc0, #eec7a0); }
+
+/* ── 엄마 폰: 링크 페이지 (큰 글씨, profiles.json fontScale 1.3) ── */
+.bab-link { background: #fffaf2; }
+.bab-urlbar { padding: 46px 16px 10px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; color: var(--bab-ink2); background: var(--bab-paper); border-bottom: 1px solid var(--bab-line); }
+.bab-link-head { display: flex; align-items: center; gap: 12px; padding-top: 6px; }
+.bab-big { margin: 0; font-size: 27px; font-weight: 800; letter-spacing: -0.03em; }
+.bab-big-list { margin: 0; padding: 16px 18px; border-radius: 20px; background: var(--bab-paper); list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 21px; font-weight: 700; line-height: 1.4; }
+.bab-link h3 { margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--bab-ink2); }
+.bab-buttons { display: flex; flex-direction: column; gap: 8px; }
+.bab-pbtn {
+  min-height: 58px; padding: 10px 16px; border-radius: 18px; background: var(--bab-paper); border: 2px solid var(--bab-line);
+  display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; text-align: left;
+  transition: background 0.2s, border-color 0.2s;
+}
+.bab-pbtn > span:first-child { font-size: 24px; }
+.bab-pbtn-check { margin-left: auto; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--bab-persimmon); opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.3s var(--bab-ease); }
+.bab-pbtn.pressed { background: var(--bab-persimmon-wash); border-color: var(--bab-persimmon); }
+.bab-pbtn.pressed .bab-pbtn-check { opacity: 1; transform: none; }
+.bab-pbtn:disabled:not(.pressed) { opacity: 0.55; }
+/* 대본 재생: 엄마가 하나씩 누르는 것처럼 --n 번째로 0.6초 간격 */
+.bab-pbtn.replay { animation: babPress 0.5s var(--bab-ease) calc(0.5s + var(--n) * 600ms) both; }
+.bab-pbtn.replay .bab-pbtn-check { animation: babTick 0.45s var(--bab-ease) calc(0.6s + var(--n) * 600ms) both; transition: none; }
+@keyframes babPress {
+  0% { background: var(--bab-paper); border-color: rgba(43, 33, 24, 0.1); transform: scale(1); }
+  40% { transform: scale(0.97); }
+  100% { background: var(--bab-persimmon-wash); border-color: var(--bab-persimmon); transform: none; }
+}
+@keyframes babTick { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: none; } }
+.bab-sent-note { margin: 4px 0 0; display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; color: var(--bab-leaf); animation: babRise 0.5s var(--bab-ease) 1.9s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bab-stage *, .bab-stage *::before, .bab-stage *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition: none !important; }
+  .bab-confetti, .bab-relay { display: none; }
+}
