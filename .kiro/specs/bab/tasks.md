@@ -21,14 +21,14 @@
   - _요구사항: R3, R4, R5-4, R6, R7-1·2·3_
   - **14:20 까지 push.** task 3·4 가 이걸 import 한다
 
-- [ ] **2. 단계 진행을 `s.state["step"]` 으로** — `BE`
+- [x] **2. 단계 진행을 `s.state["step"]` 으로** — `BE`
   - `router.py` 에 `STEPS` 와 `_advance()` 를 넣고, `start` 는 `home`, `reply` 는 다음 구간을 만든다
   - `home` · `upload` · `confirm` · `deliver` · `react` · `reply` 의 `data` 를 `rules.py` 로 만든다
   - **`beat_index` 로 분기하지 않는다.** mock 모드는 기존 `orchestrator.run()` 재생 경로를 유지한다
   - `start` 는 `payload` 없이 200
   - _요구사항: R1-1·2·3, R8-3_
 
-- [ ] **3. `judge` 에이전트 (사진 → 밥·귀가)** — `BE`
+- [x] **3. `judge` 에이전트 (사진 → 밥·귀가)** — `BE`
   - `service.py` 에 `JUDGE_SYSTEM` 과 `Agent(name="judge", parse=parse_json_block)`
   - 첨부가 없으면 `samples/lunch.jpg`·`door.jpg` 를 `Attachment` 로 붙인다 (파일이 없으면 사진 없이 진행)
   - 임시 `Session` + `beat_index = STEPS.index("judge")` 로 호출한다 (실패 시 judge 의 mock 값으로 떨어짐)
@@ -37,7 +37,7 @@
     `service.py` 쪽을 지운다** (두 곳에 남으면 고정 어휘가 어긋난다)
   - _요구사항: R2 전체, R8-1·4_
 
-- [ ] **4. `compose` 에이전트 (받는 사람별 말투)** — `BE`
+- [x] **4. `compose` 에이전트 (받는 사람별 말투)** — `BE`
   - `COMPOSE_SYSTEM` + `Agent(name="compose", parse=parse_json_block)`
   - **받는 사람마다** `rules.filter_facts()` 를 먼저 거치고, 받는 사람당 한 번씩 호출한다
   - 받는 사람마다 **임시 `Session` 을 따로** 쓴다 (이력이 섞이면 아빠 호출에 기분이 들어간다)
