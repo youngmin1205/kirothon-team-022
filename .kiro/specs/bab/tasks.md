@@ -11,7 +11,7 @@
 
 ## 웨이브 2 — 로직과 화면 (14:20~15:30)
 
-- [ ] **1. `rules.py` 순수 코드 도구 + 단위 테스트** — `L`
+- [x] **1. `rules.py` 순수 코드 도구 + 단위 테스트** — `L`
   - `backend/features/bab/rules.py` 를 새로 만든다. 모델을 호출하지 않는다
   - `normalize_mood` · `normalize_checks` · `normalize_pressed` · `filter_facts` ·
     `build_summary` · `build_bubble` · `build_preview` · `mock_data(beat)`
@@ -74,7 +74,7 @@
 
 ## 웨이브 3 — 품질과 산출물 (15:30~17:00)
 
-- [ ] **10. 발표 산출물** — `FE`
+- [x] **10. 발표 산출물** — `FE`
   - `deliverables/product.md` 의 `capture.beats` id 8개를 `product.md` 와 같게, `celebrate.at` = `reply`
   - 15:30 영상 v1(live, 실패하면 mock) → 16:30 영상 v2 + 슬라이드 PDF
   - _요구사항: R1-2_
