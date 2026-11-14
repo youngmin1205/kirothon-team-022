@@ -52,6 +52,23 @@ def test_recipient_items_are_known_items() -> None:
         assert set(r["items"]) <= ITEM_KEYS, r["id"]
 
 
+def test_no_orphan_items() -> None:
+    """정의만 되고 받는 사람이 0명인 항목이 있으면 그 기능은 화면에서 잠겨만 있다.
+
+    과거 `note`(한마디)가 어휘엔 있었지만 어떤 받는 사람의 items 에도 없어 ＋시트에서 늘
+    🔒 로 떴다. 이 테스트가 있었으면 그때 바로 잡혔다.
+    """
+    used = set().union(*(set(r["items"]) for r in PROFILES["recipients"]))
+    assert used == ITEM_KEYS, f"아무도 받지 않는 항목: {sorted(ITEM_KEYS - used)}"
+
+
+def test_home_recipients_match_profiles() -> None:
+    """home 구간 recipients(화면 잠금 표시의 원본)가 profiles.json 과 어긋나지 않는다."""
+    by_id = {r["id"]: r for r in PROFILES["recipients"]}
+    for r in _beat("home")["recipients"]:
+        assert r["items"] == by_id[r["id"]]["items"], r["id"]
+
+
 def test_ai_judges_only_meal_and_home() -> None:
     """기분은 버튼으로 고른다. judge 구간에 기분 판정이 들어가면 안 된다."""
     items = {c["item"] for c in _beat("judge")["checks"]}
