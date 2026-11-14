@@ -67,6 +67,7 @@ TONE_PRESETS: dict[str, str] = {
 MAX_TONE = 40  # 커스텀 말투 문자열 상한
 MAX_VOICE_ITEMS = 3  # 자녀 말투 예시 문장 개수 상한
 MAX_VOICE_LEN = 80  # 예시 문장 하나의 길이 상한
+MAX_ADDRESS = 12  # 호칭(아빠→아버지/아부지 등) 문자열 상한
 
 
 # ── 에이전트 프롬프트 ──────────────────────────────────────────────────────
@@ -93,6 +94,7 @@ COMPOSE_SYSTEM = (
     "힘들다·아프다·피곤하다를 괜찮다로 바꾸지 말고 말투만 다듬는다. "
     "voice_examples 가 있으면 그 말버릇·이모지를 따라 쓰되, 받는 사람과의 관계(존댓말/반말)는 "
     "tone 을 우선한다. 입력에 없는 사실은 말투 때문에라도 지어내지 않는다. "
+    "call_them 이 있으면 그 호칭으로 부른다(없으면 to 를 쓴다). "
     "받는 사람의 tone 에 맞춰 두 문장 이내로 쓴다. "
     "facts 는 코드가 확정한 사실 문장이다. 뜻을 바꾸거나 반대로 말하지 않는다. "
     "'아직 ~못/안 ~다'는 아직 안 했다는 뜻이다. 확인·사진·판정·AI 같은 말은 쓰지 않는다. "
@@ -191,9 +193,10 @@ def normalize_style(payload: dict[str, Any] | None) -> dict[str, Any]:
     - tones[recipientId]: 프리셋 key 면 TONE_PRESETS 로 풀고, 커스텀 문자열이면 길이 제한.
       모르는 값은 버린다(→ 프로필 기본 tone 유지).
     - voice: 자녀 말투 예시 문장. 개수·길이 제한.
+    - addresses[recipientId]: 호칭(아빠→"아버지"·"아부지" 등). 길이 제한. 없으면 프로필 이름.
     """
     if not isinstance(payload, dict):
-        return {"tones": {}, "voice": []}
+        return {"tones": {}, "voice": [], "addresses": {}}
 
     tones: dict[str, str] = {}
     raw_tones = payload.get("tones")
@@ -217,7 +220,17 @@ def normalize_style(payload: dict[str, Any] | None) -> dict[str, Any]:
             if len(voice) >= MAX_VOICE_ITEMS:
                 break
 
-    return {"tones": tones, "voice": voice}
+    addresses: dict[str, str] = {}
+    raw_addr = payload.get("addresses")
+    if isinstance(raw_addr, dict):
+        for rid, val in raw_addr.items():
+            if not isinstance(rid, str) or not isinstance(val, str):
+                continue
+            text = " ".join(val.split())[:MAX_ADDRESS]  # 자유 입력, 길이만 제한
+            if text:
+                addresses[rid] = text
+
+    return {"tones": tones, "voice": voice, "addresses": addresses}
 
 
 def _compose_prompt(
@@ -225,12 +238,13 @@ def _compose_prompt(
     summary: str,
     tone: str | None = None,
     voice: list[str] | None = None,
+    address: str | None = None,
 ) -> str:
     """모델에 넘길 한 덩어리. filter_facts 로 **이미 걸러진** 입력만 담는다.
 
     아빠 프로필에 mood 가 없으면 이 JSON 에 mood 키 자체가 없다. "말하지 마"라고
-    적어서 막는 것이 아니라, 입력에 존재하지 않게 만든다 (R4-1). tone·voice 는 말투만
-    바꾸고, 공개 항목에는 손대지 않는다 (R9).
+    적어서 막는 것이 아니라, 입력에 존재하지 않게 만든다 (R4-1). tone·voice·호칭(call_them)
+    은 말투·부르는 법만 바꾸고, 공개 항목에는 손대지 않는다 (R9).
     """
     payload: dict[str, Any] = {
         "to": allowed["name"],
@@ -241,6 +255,9 @@ def _compose_prompt(
         "items": _present_items(allowed),
         "summary": summary,
     }
+    if address:
+        # 자녀가 정한 호칭으로 부른다. 없으면 모델이 to(프로필 이름)로 부른다
+        payload["call_them"] = address
     # status 코드·judge 설명 대신 코드가 만든 사실 문장만 넘긴다 (R4-6)
     payload["facts"] = rules.fact_sentences(allowed)
     if voice:
@@ -274,12 +291,13 @@ def _guarded_text(
     summary: str,
     tone: str | None,
     voice: list[str],
+    address: str | None = None,
 ) -> str:
     """생성 → 코드 검증 → 1회 재시도 → 코드 문장 (R4-6).
 
     프롬프트 규칙은 모델이 어길 수 있다. 사실과 어긋난 문장은 부모님께 가기 전에 코드가 잡는다.
     """
-    prompt = _compose_prompt(allowed, summary, tone, voice)
+    prompt = _compose_prompt(allowed, summary, tone, voice, address)
     for attempt in range(2):
         result = orchestrator.agents["compose"].run(_scratch(parent, "compose"), prompt)
         text = _compose_text(result, recipient, summary)
@@ -310,8 +328,11 @@ def run_compose(parent: Session) -> dict[str, Any]:
         allowed = rules.filter_facts(recipient, facts)
         summary = rules.build_summary(recipient, facts)
         tone = style["tones"].get(recipient["id"])
+        address = style["addresses"].get(recipient["id"])
         if _present_items(allowed):
-            text = _guarded_text(parent, recipient, allowed, summary, tone, style["voice"])
+            text = _guarded_text(
+                parent, recipient, allowed, summary, tone, style["voice"], address
+            )
         else:
             # 보낼 사실이 하나도 없으면 모델을 부르지 않는다. 부르면 빈 입력을 지어내서 채운다
             text = f"{recipient['name']}, 오늘 안부 전해요."

@@ -77,6 +77,7 @@ def test_normalize_style_presets_and_clamps() -> None:
         {
             "tones": {"dad": "dialect", "mom": "ㅋ" * 100, "bad": 123},
             "voice": ["  안녕 " * 50, "", "a", "b", "c", "d"],
+            "addresses": {"dad": "아버지", "mom": "가" * 50, "bad": 5},
         }
     )
     assert s["tones"]["dad"] == service.TONE_PRESETS["dialect"]  # 프리셋 풀림
@@ -84,20 +85,25 @@ def test_normalize_style_presets_and_clamps() -> None:
     assert "bad" not in s["tones"]  # 문자열 아닌 값은 버림
     assert len(s["voice"]) <= service.MAX_VOICE_ITEMS  # 개수 제한
     assert all(len(v) <= service.MAX_VOICE_LEN for v in s["voice"])  # 길이 제한
+    assert s["addresses"]["dad"] == "아버지"  # 호칭 자유 입력
+    assert len(s["addresses"]["mom"]) <= service.MAX_ADDRESS  # 호칭 길이 제한
+    assert "bad" not in s["addresses"]  # 문자열 아닌 값은 버림
 
 
 def test_normalize_style_empty_on_junk() -> None:
-    assert service.normalize_style(None) == {"tones": {}, "voice": []}
-    assert service.normalize_style({"text": "다음"}) == {"tones": {}, "voice": []}
+    empty = {"tones": {}, "voice": [], "addresses": {}}
+    assert service.normalize_style(None) == empty
+    assert service.normalize_style({"text": "다음"}) == empty
 
 
-def test_tone_override_and_voice_enter_prompt() -> None:
+def test_tone_voice_address_enter_prompt() -> None:
     allowed = {"name": "아빠", "tone": "짧게", "items": ["home"],
                "checks": [{"item": "home", "status": "done", "detail": "귀가"}]}
     p = service._compose_prompt(allowed, "🏠 귀가", tone=service.TONE_PRESETS["dialect"],
-                                voice=["오늘도 화이팅"])
+                                voice=["오늘도 화이팅"], address="아버지")
     assert "사투리" in p  # 오버라이드한 말투가 들어감
     assert "voice_examples" in p and "오늘도 화이팅" in p
+    assert "call_them" in p and "아버지" in p  # 호칭이 들어감
 
 
 def test_style_cannot_leak_filtered_mood_to_dad() -> None:
