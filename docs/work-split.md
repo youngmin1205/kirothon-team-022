@@ -183,6 +183,18 @@ docs/work-split.md 2장 입력 계약과 mock.json 의 data 모양을 지킨다.
 - [ ] 15:30 `USE_MOCK=0 pnpm dev` 로 live 8구간 1회 → 결과를 세민에게 (영상 v1 은 live 로 찍는다)
 - [ ] 15:30~16:30 예외: 사진 판정 실패 시 `status: "unknown"`, 직접 입력 기분은 뜻을 바꾸지 않음
 
+> **BE 를 세션 둘로 나눠 할 때 — `service.py`(task 3·4) ↔ `router.py`(task 2) 계약.**
+> 같은 파일을 동시에 고치지 않으려고 파일을 가른다. `STEPS` 는 `service.py` 에만 정의한다.
+> router 세션은 redefine 하지 말고 아래를 import 해서 단계에 꽂는다:
+>
+> ```python
+> from .service import FEATURE, STEPS, orchestrator, run_judge, run_compose
+> # judge 단계:   data = run_judge(session, files)   # session.state["facts"]["checks"] 도 채워짐
+> # compose 단계: data = run_compose(session)         # {"messages": [...]}  (받는 사람 수만큼)
+> ```
+>
+> mock 모드(`USE_MOCK=1`)는 기존 `orchestrator.run()` 재생 경로 그대로 — 위 두 함수는 live 에서만 탄다.
+
 **완료 기준:** `uv run pytest` · `pnpm smoke` 통과, live 에서 judge·compose 가 mock 과 같은 모양
 **건드리지 말 것:** `backend/main.py`, `backend/core/`, `backend/features/bab/rules.py`(영신 담당), `mock.json` 의 구간 id. 형식을 바꿔야 하면 먼저 세민·영신에게
 **넘겨줄 것:** live 응답 예시 1벌 (세민 연출·슬라이드 숫자용)

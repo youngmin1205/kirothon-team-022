@@ -1,44 +1,222 @@
-"""밥은 먹었니 기능의 로직.
+"""밥은 먹었니 — 모델을 호출하는 두 에이전트 (judge · compose).
 
-지금은 계약(mock.json · profiles.json)만 고정한 상태다. 아래 SYSTEM 과 TOOLS 는
-spec(.kiro/specs/bab/) 으로 채운다. 지켜야 할 규칙은 .kiro/steering/product.md 의
-"고정 규칙" 절에 있다. 특히:
-    - AI 는 사진으로 밥·귀가만 판정한다. 기분은 자녀가 버튼으로 고른 값을 그대로 쓴다
-    - 받는 사람 프로필에 없는 항목은 코드가 걸러낸 뒤 모델에 넘긴다 (프롬프트로 막지 않는다)
-    - 응답 JSON 은 mock.json 의 beats[].data 와 같은 모양이어야 한다
+역할 나눔
+    judge    사진을 보고 **밥(meal)·귀가(home)** 만 판정한다. 기분은 판단하지 않는다 (R2).
+    compose  받는 사람마다 공개 항목과 말투가 다른 안부 문장을 쓴다 (R5).
+
+이 파일은 프롬프트와 호출만 담당한다. 거르고·요약하고·검증하는 순수 코드는
+`rules.py`(영신, task 1)가 한다. 여기서는 `rules.*` 를 호출만 하고 고정 어휘를
+다시 적지 않는다. 적으면 두 곳이 어긋난다.
+
+라우터(task 2)와의 계약
+    `router.py` 가 단계마다 아래를 import 해서 꽂는다. 라우터는 단계 진행과
+    응답 조립만 하고, 모델 호출은 전부 이 파일을 거친다.
+
+        from .service import FEATURE, STEPS, orchestrator, run_judge, run_compose
+
+    - `judge` 단계: `run_judge(session, files)` → `checks` 를 만들고
+      `session.state["facts"]["checks"]` 에 넣는다.
+    - `compose` 단계: `run_compose(session)` → 받는 사람 수만큼 `messages` 를 만든다.
+    - mock 모드(`USE_MOCK=1`)는 라우터가 기존 `orchestrator.run()` 재생 경로를 그대로
+      쓴다. 그 경로는 여기 두 함수를 거치지 않는다.
+
+받는 사람마다 세션을 따로 쓰는 이유
+    `Agent.run()` 은 `session.messages` 에 이력을 쌓고 `converse()` 가 전체 이력을
+    보낸다. 엄마용을 먼저 호출하면 그 응답이 이력에 남아 **아빠용 입력에 기분이
+    섞여 들어간다.** 그래서 호출마다 등록하지 않은 임시 `Session` 을 쓴다 (R4-2).
 """
 from __future__ import annotations
 
+import base64
 import json
-from functools import lru_cache
+import logging
 from pathlib import Path
 from typing import Any
 
 from ...core.agent_loop import Agent, Orchestrator
+from ...core.attachments import Attachment
+from ...core.bedrock import Result, parse_json_block
+from ...core.session import Session
+from . import rules
+
+logger = logging.getLogger("bab")
 
 FEATURE = "bab"
+SAMPLES_DIR = Path(__file__).resolve().parent / "samples"
 
-PROFILES_PATH = Path(__file__).resolve().parent / "profiles.json"
+# 라우터(task 2)가 이 순서로 단계를 센다. judge·compose 호출 위치도 여기서 찾는다.
+# 한 곳에만 둔다 — 라우터는 redefine 하지 말고 이걸 import 한다.
+STEPS: list[str] = [
+    "home", "upload", "judge", "confirm", "compose", "deliver", "react", "reply",
+]
+
+# judge 가 첨부 없이 불릴 때 붙이는 데모 사진. #play 는 사진을 보내지 않는다
+# (frontend/src/app/useDemo.ts:307). 라벨은 rules 의 기본 라벨 순서와 맞춘다.
+SAMPLE_PHOTOS: tuple[str, ...] = ("lunch.jpg", "door.jpg")
 
 
-@lru_cache(maxsize=1)
-def profiles() -> dict[str, Any]:
-    """데모용 고정 프로필. 설정 화면은 범위 밖이라 파일에서 읽는다."""
-    return json.loads(PROFILES_PATH.read_text(encoding="utf-8"))
+# ── 에이전트 프롬프트 ──────────────────────────────────────────────────────
 
+JUDGE_SYSTEM = (
+    "너는 사진을 보고 자취하는 자녀의 하루를 확인하는 도우미다. "
+    "사진으로 확인할 수 있는 것은 밥(meal)과 귀가(home) 두 가지뿐이다. "
+    "기분은 절대 판단하지 않는다. 기분은 자녀가 버튼으로 직접 고른다. "
+    "status 는 사진으로 확인되면 done, 아직이면 not_yet, 사진으로 알 수 없으면 unknown 이다. "
+    "지어내지 말고, 확실하지 않으면 unknown 으로 둔다. detail 은 한 줄로 짧게 적는다. "
+    "답은 아래 JSON 한 덩어리로만 준다. item 은 meal 과 home 만 쓴다.\n"
+    '```json\n'
+    '{"checks": ['
+    '{"item": "meal", "status": "done", "detail": "점심 김치찌개", "photo": "lunch.jpg"}, '
+    '{"item": "home", "status": "done", "detail": "21시 귀가", "photo": "door.jpg"}'
+    ']}\n'
+    '```'
+)
 
-# TODO(spec): 판정 에이전트·작성 에이전트로 나누고, 프로필 필터·요약 조립은 순수 코드 도구로 만든다
-SYSTEM = (
-    "너는 자취하는 자녀의 하루 안부를 부모님께 전하는 도우미다. "
-    "사진으로는 밥과 귀가만 판단하고, 기분은 사용자가 고른 값을 바꾸지 않는다. "
-    "답은 두 문장 이내로 하고, 화면용 값은 JSON 블록 하나로 준다."
+COMPOSE_SYSTEM = (
+    "너는 자녀의 하루 안부를 부모님께 전하는 메시지를 쓴다. "
+    "입력(JSON)에 담긴 항목만 쓴다. 입력에 없는 것은 모르는 것이니 지어내거나 추측하지 않는다. "
+    "기분(mood)이 입력에 있으면 그 뜻을 바꾸지 않는다. "
+    "힘들다·아프다·피곤하다를 괜찮다로 바꾸지 말고 말투만 다듬는다. "
+    "받는 사람의 tone 에 맞춰 두 문장 이내로 쓴다. "
+    "답은 아래 JSON 한 덩어리로만 준다.\n"
+    '```json\n{"text": "엄마~ 점심 잘 먹었고 9시에 집 들어왔어."}\n```'
 )
 
 
 def build() -> Orchestrator:
+    """judge(기본) + compose 두 에이전트. 둘 다 JSON 블록을 뽑는다 (backend.md 규칙 3)."""
     orch = Orchestrator()
-    orch.add(Agent(name="main", system=SYSTEM), default=True)
+    orch.add(Agent(name="judge", system=JUDGE_SYSTEM, parse=parse_json_block), default=True)
+    orch.add(Agent(name="compose", system=COMPOSE_SYSTEM, parse=parse_json_block))
     return orch
 
 
 orchestrator = build()
+
+
+# ── 임시 세션·샘플 사진 ────────────────────────────────────────────────────
+
+
+def _scratch(parent: Session, beat: str) -> Session:
+    """등록하지 않은 임시 세션. 이력이 본 세션·다른 받는 사람과 섞이지 않게 한다 (R4-2).
+
+    beat_index 를 그 구간에 맞춰 두면 Bedrock 이 실패했을 때 Agent._mock_turn 이
+    home 이 아니라 그 구간의 mock 값으로 떨어진다 (R8-1). 단계 사이 맥락은 이력이
+    아니라 parent.state["facts"] 가 들고 있으므로 잃는 것이 없다.
+    """
+    s = Session(id=f"{parent.id}:{beat}", feature=FEATURE)
+    s.beat_index = STEPS.index(beat)
+    return s
+
+
+def _sample_photos() -> list[Attachment]:
+    """samples/ 의 데모 사진을 Attachment 로. 파일이 없으면 빈 목록 (사진 없이 진행, R2-3).
+
+    디코딩·검증·상한은 core/attachments.py 가 한다. 여기서 다시 하지 않는다.
+    """
+    out: list[Attachment] = []
+    if not SAMPLES_DIR.is_dir():
+        return out
+    for name in SAMPLE_PHOTOS:
+        path = SAMPLES_DIR / name
+        if not path.is_file():
+            continue
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        try:
+            out.append(Attachment(name=name, mimeType="image/jpeg", dataBase64=encoded))
+        except ValueError as e:  # 손상된 샘플이 데모를 멈추게 두지 않는다
+            logger.warning("샘플 사진 %s 건너뜀: %s", name, e)
+    return out
+
+
+# ── judge: 사진 → 밥·귀가 ──────────────────────────────────────────────────
+
+
+def run_judge(parent: Session, files: list[Attachment] | None = None) -> dict[str, Any]:
+    """사진으로 밥·귀가를 판정하고 checks 를 facts 에 넣는다 (R2).
+
+    - 첨부가 없으면 samples/ 사진을 붙인다. 그것도 없으면 사진 없이 호출한다.
+    - 모델이 checks JSON 을 안 주면 mock.json 의 judge 값으로 떨어진다 (R2-4, R8-4).
+    - meal·home 만 남기고 status enum 을 검증하는 일은 rules.normalize_checks 가 한다.
+      모델이 기분을 끼워 넣어도 코드가 지운다 (프롬프트로만 막지 않는다).
+    """
+    photos = files or _sample_photos()
+    prompt = "이 사진으로 오늘 밥과 귀가를 확인해 줘. 기분은 판단하지 마."
+    result = orchestrator.agents["judge"].run(_scratch(parent, "judge"), prompt, photos or None)
+
+    data = result.data if isinstance(result.data, dict) else None
+    if not data:
+        data = rules.mock_data("judge") or {}
+    checks = rules.normalize_checks({"checks": data.get("checks")})
+
+    facts = parent.state.setdefault("facts", {})
+    facts["checks"] = checks
+    return {"checks": checks}
+
+
+# ── compose: 받는 사람별 말투 ──────────────────────────────────────────────
+
+
+def _compose_prompt(allowed: dict[str, Any], summary: str) -> str:
+    """모델에 넘길 한 덩어리. filter_facts 로 **이미 걸러진** 입력만 담는다.
+
+    아빠 프로필에 mood 가 없으면 이 JSON 에 mood 키 자체가 없다. "말하지 마"라고
+    적어서 막는 것이 아니라, 입력에 존재하지 않게 만든다 (R4-1).
+    """
+    payload: dict[str, Any] = {
+        "to": allowed["name"],
+        "tone": allowed.get("tone", ""),
+        "items": allowed.get("items", []),
+        "summary": summary,
+    }
+    for key in ("checks", "mood", "note"):
+        if key in allowed:
+            payload[key] = allowed[key]
+    return f"{allowed['name']}에게 보낼 안부 메시지를 써 줘.\n{json.dumps(payload, ensure_ascii=False)}"
+
+
+def _compose_text(result: Result, recipient: dict[str, Any], summary: str) -> str:
+    """모델 응답에서 본문 한 줄을 고른다. 실패하면 요약으로 채운다 (R8-4).
+
+    mock 폴백에서는 compose 구간 data 가 messages[] 를 통째로 들고 오므로,
+    이 받는 사람 것을 골라 쓴다.
+    """
+    data = result.data if isinstance(result.data, dict) else None
+    if data:
+        text = data.get("text")
+        if isinstance(text, str) and text.strip():
+            return text.strip()
+        for m in data.get("messages", []):
+            if m.get("to") == recipient["id"] and isinstance(m.get("text"), str):
+                return m["text"]
+    if result.source == "bedrock" and result.text.strip():
+        return result.text.strip()
+    return summary or recipient["name"]
+
+
+def run_compose(parent: Session) -> dict[str, Any]:
+    """받는 사람마다 공개 항목과 말투가 다른 메시지를 만든다 (R4, R5).
+
+    - 받는 사람마다 filter_facts 로 공개 항목만 남긴 뒤 모델에 넘긴다.
+    - 받는 사람마다 임시 세션을 따로 써서 기분이 아빠 호출에 새지 않게 한다 (R4-2).
+    - summary 는 rules.build_summary 가 조립한다. 모델 출력으로 만들지 않는다 (R5-4).
+    - items 는 그 사람 프로필과 같다. text 만 모델이 쓴다.
+    """
+    facts = parent.state.get("facts", {})
+    compose = orchestrator.agents["compose"]
+    messages: list[dict[str, Any]] = []
+    for recipient in rules.recipients():
+        allowed = rules.filter_facts(recipient, facts)
+        summary = rules.build_summary(recipient, facts)
+        result = compose.run(_scratch(parent, "compose"), _compose_prompt(allowed, summary))
+        messages.append(
+            {
+                "to": recipient["id"],
+                "name": recipient["name"],
+                "channel": recipient.get("channel", ""),
+                "items": allowed.get("items", []),
+                "summary": summary,
+                "text": _compose_text(result, recipient, summary),
+            }
+        )
+    return {"messages": messages}
