@@ -33,6 +33,8 @@
   - 첨부가 없으면 `samples/lunch.jpg`·`door.jpg` 를 `Attachment` 로 붙인다 (파일이 없으면 사진 없이 진행)
   - 임시 `Session` + `beat_index = STEPS.index("judge")` 로 호출한다 (실패 시 judge 의 mock 값으로 떨어짐)
   - 판정 결과를 `s.state["facts"]["checks"]` 에 넣는다. 기분은 판정하지 않는다
+  - `service.py` 의 `profiles()` 는 `rules.profiles()` 와 중복이다. **이 task 에서 `rules` 쪽으로 합치고
+    `service.py` 쪽을 지운다** (두 곳에 남으면 고정 어휘가 어긋난다)
   - _요구사항: R2 전체, R8-1·4_
 
 - [ ] **4. `compose` 에이전트 (받는 사람별 말투)** — `BE`
