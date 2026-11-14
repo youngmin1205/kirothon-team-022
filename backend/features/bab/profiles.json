@@ -1,0 +1,43 @@
+{
+  "_comment": "데모용 고정값. 설정 화면은 범위 밖이다. 항목·버튼 key 는 mock.json 의 data 와 같은 이름을 쓴다. 받는 사람의 items 에 없는 항목은 코드가 걸러낸 뒤 모델에 넘긴다.",
+  "child": { "name": "민지" },
+  "items": [
+    { "key": "meal", "emoji": "🍚", "label": "밥", "source": "photo" },
+    { "key": "home", "emoji": "🏠", "label": "귀가", "source": "photo" },
+    { "key": "mood", "emoji": "🙂", "label": "기분", "source": "button" },
+    { "key": "note", "emoji": "💬", "label": "한마디", "source": "text" }
+  ],
+  "moodOptions": [
+    { "key": "good", "emoji": "😊", "label": "좋아" },
+    { "key": "ok", "emoji": "🙂", "label": "괜찮아" },
+    { "key": "tired", "emoji": "😪", "label": "피곤해" },
+    { "key": "busy", "emoji": "😵", "label": "바빠" },
+    { "key": "sick", "emoji": "🤒", "label": "아파" },
+    { "key": "custom", "emoji": "✏️", "label": "직접 입력" }
+  ],
+  "parentButtons": [
+    { "key": "heart", "emoji": "❤️", "label": "잘 받았어" },
+    { "key": "call", "emoji": "📞", "label": "전화할게" },
+    { "key": "ate", "emoji": "🍚", "label": "나도 밥 먹었어" },
+    { "key": "hospital", "emoji": "🏥", "label": "병원 다녀왔어" },
+    { "key": "fine", "emoji": "🙂", "label": "오늘 괜찮아" }
+  ],
+  "recipients": [
+    {
+      "id": "mom",
+      "name": "엄마",
+      "items": ["meal", "home", "mood"],
+      "tone": "다정하고 구체적으로, 반말",
+      "channel": "kakao",
+      "fontScale": 1.3
+    },
+    {
+      "id": "dad",
+      "name": "아빠",
+      "items": ["home"],
+      "tone": "짧게, 존댓말",
+      "channel": "sms",
+      "fontScale": 1.3
+    }
+  ]
+}

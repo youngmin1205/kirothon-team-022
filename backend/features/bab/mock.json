@@ -1,0 +1,135 @@
+{
+  "_comment": "beat id 는 .kiro/steering/product.md 의 데모 구간 표, deliverables/product.md 의 capture.beats 와 같아야 한다. data 가 화면 계약이다: 항목 key 는 meal/home/mood/note, 기분 key 는 good/ok/tired/busy/sick/custom, 부모님 버튼 key 는 heart/call/ate/hospital/fine (profiles.json). check.status 는 done|not_yet|unknown. live 모드도 같은 모양의 JSON 을 돌려줘야 한다.",
+  "beats": [
+    {
+      "id": "home",
+      "text": "오늘 안부 보낼 사람은 엄마, 아빠예요. 사진을 올리고 기분을 골라 주세요.",
+      "delayMs": 600,
+      "data": {
+        "child": "민지",
+        "recipients": [
+          { "id": "mom", "name": "엄마", "items": ["meal", "home", "mood"], "channel": "kakao" },
+          { "id": "dad", "name": "아빠", "items": ["home"], "channel": "sms" }
+        ]
+      }
+    },
+    {
+      "id": "upload",
+      "say": "점심이랑 현관 사진 올릴게, 오늘 좀 피곤해",
+      "text": "사진 2장과 기분 \"😪 피곤해\"를 받았어요.",
+      "delayMs": 700,
+      "data": {
+        "photos": [
+          { "name": "lunch.jpg", "label": "점심" },
+          { "name": "door.jpg", "label": "현관" }
+        ],
+        "mood": { "key": "tired", "emoji": "😪", "label": "피곤해", "custom": null },
+        "note": null
+      }
+    },
+    {
+      "id": "judge",
+      "say": "이 사진으로 오늘 안부 정리해 줘",
+      "text": "점심에 김치찌개를 먹었고, 21시에 집에 들어온 것으로 보여요.",
+      "delayMs": 900,
+      "data": {
+        "checks": [
+          { "item": "meal", "emoji": "🍚", "label": "밥", "status": "done", "detail": "점심 김치찌개", "photo": "lunch.jpg" },
+          { "item": "home", "emoji": "🏠", "label": "귀가", "status": "done", "detail": "21시 귀가", "photo": "door.jpg" }
+        ]
+      }
+    },
+    {
+      "id": "confirm",
+      "say": "맞아, 이대로 보내",
+      "text": "확인했어요. 이 내용으로 메시지를 만들게요.",
+      "delayMs": 600,
+      "data": {
+        "confirmed": true,
+        "checks": [
+          { "item": "meal", "emoji": "🍚", "label": "밥", "status": "done", "detail": "점심 김치찌개" },
+          { "item": "home", "emoji": "🏠", "label": "귀가", "status": "done", "detail": "21시 귀가" }
+        ],
+        "mood": { "key": "tired", "emoji": "😪", "label": "피곤해", "custom": null }
+      }
+    },
+    {
+      "id": "compose",
+      "say": "엄마랑 아빠한테 보낼 메시지 만들어 줘",
+      "text": "엄마에게는 밥·귀가·기분을, 아빠에게는 귀가만 보내요.",
+      "delayMs": 1000,
+      "data": {
+        "messages": [
+          {
+            "to": "mom",
+            "name": "엄마",
+            "channel": "kakao",
+            "items": ["meal", "home", "mood"],
+            "summary": "🍚 점심 김치찌개 먹음 · 🏠 9시 귀가 · 😪 조금 피곤",
+            "text": "엄마~ 점심에 김치찌개 든든하게 먹었고 9시에 집 잘 들어왔어. 오늘은 좀 피곤해서 일찍 잘게!"
+          },
+          {
+            "to": "dad",
+            "name": "아빠",
+            "channel": "sms",
+            "items": ["home"],
+            "summary": "🏠 9시 귀가",
+            "text": "아빠, 9시에 집 잘 들어왔어요."
+          }
+        ]
+      }
+    },
+    {
+      "id": "deliver",
+      "say": "보내기",
+      "text": "엄마·아빠에게 보냈어요.",
+      "delayMs": 800,
+      "data": {
+        "to": "mom",
+        "name": "엄마",
+        "channel": "kakao",
+        "sentAt": "21:05",
+        "bubble": "민지 오늘 안부\n🍚 점심 김치찌개 먹음 · 🏠 9시 귀가 · 😪 조금 피곤\n❤️ 답하기 ▶ https://bab.example.com/r/demo01",
+        "preview": {
+          "title": "민지 오늘 안부",
+          "description": "🍚 밥 ✓ · 🏠 귀가 ✓ · 😪 피곤해",
+          "image": "lunch.jpg"
+        },
+        "link": "https://bab.example.com/r/demo01"
+      }
+    },
+    {
+      "id": "react",
+      "say": "(엄마) 나도 밥 먹었어",
+      "text": "엄마가 ❤️ 잘 받았어, 🍚 나도 밥 먹었어를 눌렀어요.",
+      "delayMs": 800,
+      "data": {
+        "from": "mom",
+        "name": "엄마",
+        "buttons": [
+          { "key": "heart", "emoji": "❤️", "label": "잘 받았어" },
+          { "key": "call", "emoji": "📞", "label": "전화할게" },
+          { "key": "ate", "emoji": "🍚", "label": "나도 밥 먹었어" },
+          { "key": "hospital", "emoji": "🏥", "label": "병원 다녀왔어" },
+          { "key": "fine", "emoji": "🙂", "label": "오늘 괜찮아" }
+        ],
+        "pressed": ["heart", "ate"]
+      }
+    },
+    {
+      "id": "reply",
+      "text": "엄마도 밥 드셨대요.",
+      "delayMs": 600,
+      "data": {
+        "from": "mom",
+        "name": "엄마",
+        "chips": [
+          { "key": "heart", "emoji": "❤️", "label": "잘 받았어" },
+          { "key": "ate", "emoji": "🍚", "label": "나도 밥 먹었어" }
+        ],
+        "toast": "엄마도 밥 드셨대요",
+        "celebrate": true
+      }
+    }
+  ]
+}
