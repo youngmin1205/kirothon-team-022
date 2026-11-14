@@ -331,7 +331,7 @@ const Opening = () => {
           <div style={{ fontSize: 132, fontWeight: 700, letterSpacing: -4.5, whiteSpace: 'nowrap' }}>{P.service}</div>
         </div>
         <Reveal text={HOOK} delay={10} style={{ fontSize: 60, fontWeight: 700, letterSpacing: -1.5, lineHeight: 1.3, marginTop: 44 }} />
-        <div style={{ ...useFade(36), marginTop: 60, fontSize: S.body + 2, color: d.muted, fontWeight: 600, lineHeight: 1.6 }}>
+        <div style={{ ...useFade(36), marginTop: 60, fontSize: S.body + 2, color: d.muted, fontWeight: 600, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
           {P.opening.persona}<br />
           <span style={{ color: d.accent, fontWeight: 700 }}>{P.opening.title.replace('\n', ' ')}</span>
         </div>
@@ -397,7 +397,7 @@ const Solution = () => {
           <div style={{ ...useFade(20), fontSize: 34, fontWeight: 600, color: d.muted, marginTop: 36, lineHeight: 1.45, width: 900 }}>{P.solution.title}</div>
         </> : <Reveal text={P.solution.tagline} delay={14} style={{ fontSize: 56, fontWeight: 700, color: d.muted, letterSpacing: -1.5, lineHeight: 1.3, marginTop: 48 }} />}
       </div>
-      <div style={{ ...useFade(6), position: 'absolute', right: BROWSER ? M - 20 : M + 40, top: BROWSER ? 560 : 150 }}>
+      <div style={{ ...useFade(6), position: 'absolute', right: BROWSER ? M - 20 : M + 40, top: BROWSER ? 300 : 150 }}>
         <div style={{ transform: `perspective(2000px) rotateY(${(BROWSER ? -14 : -22) + (BROWSER ? 8 : 12) * t}deg) rotateX(6deg) translateY(${-14 * t}px)`, transformOrigin: 'center' }}>
           <Emulator scale={LAYOUT.still} still />
         </div>
