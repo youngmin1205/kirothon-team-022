@@ -1,0 +1,40 @@
+{
+  "_comment": "beat id 는 deliverables/product.md 의 capture.beats 와 같아야 한다. 화면 신호·영상 구간·mock 응답이 이 id 로 묶인다.",
+  "beats": [
+    {
+      "id": "intro",
+      "text": "예시 에이전트입니다. 이 응답은 mock 시나리오에서 나왔습니다.",
+      "delayMs": 500,
+      "data": { "step": 1 }
+    },
+    {
+      "id": "work",
+      "say": "용어 하나 찾아줘",
+      "text": "두 번째 구간입니다. 도구를 호출한 것처럼 보이는 단계입니다.",
+      "delayMs": 700,
+      "data": { "step": 2, "toolCalled": "lookup_term" }
+    },
+    {
+      "id": "result",
+      "say": "결과 보여줘",
+      "text": "세 번째 구간입니다. 결과를 보여 주는 단계입니다.",
+      "delayMs": 700,
+      "data": {
+        "step": 3,
+        "score": 72,
+        "rows": [
+          { "zone": "A", "score": 81, "risk": true },
+          { "zone": "B", "score": 44, "risk": false },
+          { "zone": "C", "score": 23, "risk": false }
+        ]
+      }
+    },
+    {
+      "id": "end",
+      "say": "고마워",
+      "text": "데모가 끝났습니다. 기능이 없어도 여기까지 재생됩니다.",
+      "delayMs": 400,
+      "data": { "step": 4 }
+    }
+  ]
+}

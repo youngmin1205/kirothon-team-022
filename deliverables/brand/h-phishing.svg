@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720" viewBox="0 0 720 720" fill="none">
+  <!-- Opening illustration: an incoming "prosecutor" call with risk signals. Flat, one accent color. -->
+  <rect x="200" y="70" width="320" height="580" rx="48" fill="#1c1a1f"/>
+  <rect x="214" y="84" width="292" height="552" rx="36" fill="#ffffff"/>
+  <rect x="310" y="96" width="100" height="22" rx="11" fill="#1c1a1f"/>
+  <text x="360" y="196" font-family="Pretendard" font-size="20" font-weight="600" fill="#a19ca6" text-anchor="middle">수신 전화</text>
+  <text x="360" y="246" font-family="Pretendard" font-size="38" font-weight="800" fill="#1c1a1f" text-anchor="middle">02-xxx-xxxx</text>
+  <text x="360" y="284" font-family="Pretendard" font-size="22" font-weight="600" fill="#6b6670" text-anchor="middle">서울중앙지검(?)</text>
+  <!-- risk signal chips -->
+  <g font-family="Pretendard" font-size="19" font-weight="700">
+    <rect x="252" y="330" width="216" height="44" rx="10" fill="#f8e5e1"/>
+    <text x="360" y="359" fill="#c2412d" text-anchor="middle">권위 사칭 88%</text>
+    <rect x="252" y="386" width="216" height="44" rx="10" fill="#f8e5e1"/>
+    <text x="360" y="415" fill="#c2412d" text-anchor="middle">긴급성 85%</text>
+    <rect x="252" y="442" width="216" height="44" rx="10" fill="#f7f6f3"/>
+    <text x="360" y="471" fill="#6b6670" text-anchor="middle">계좌번호 요구 감지</text>
+  </g>
+  <!-- call buttons -->
+  <circle cx="290" cy="566" r="34" fill="#c2412d"/>
+  <path d="M278 554 L302 578 M302 554 L278 578" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="430" cy="566" r="34" fill="#e6e2db"/>
+  <path d="M416 566 L426 576 L446 556" stroke="#a19ca6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ringing arcs -->
+  <g stroke="#b8325c" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M556 210 a70 70 0 0 1 0 110"/>
+    <path d="M590 180 a110 110 0 0 1 0 170" opacity="0.5"/>
+    <path d="M164 210 a70 70 0 0 0 0 110"/>
+    <path d="M130 180 a110 110 0 0 0 0 170" opacity="0.5"/>
+  </g>
+  <!-- training badge -->
+  <rect x="440" y="40" width="170" height="56" rx="28" fill="#b8325c"/>
+  <text x="525" y="76" font-family="Pretendard" font-size="24" font-weight="800" fill="#ffffff" text-anchor="middle">훈련 중</text>
+</svg>

@@ -1,0 +1,37 @@
+{
+  "name": "kirothon",
+  "private": true,
+  "version": "0.1.0",
+  "description": "KIROTHON 2026 — AAcrew. 실행 명령은 모두 여기서 시작한다.",
+  "scripts": {
+    "bootstrap": "uv sync --extra dev && pnpm -C frontend install",
+    "bootstrap:deliverables": "npm --prefix deliverables install && npm --prefix deliverables run setup",
+
+    "dev": "concurrently -n api,web -c cyan,magenta \"pnpm run dev:api\" \"pnpm run dev:web\"",
+    "dev:api": "uv run uvicorn backend.main:app --reload --port 8000",
+    "dev:web": "pnpm -C frontend dev",
+
+    "mock": "USE_MOCK=1 pnpm run dev",
+
+    "build": "pnpm -C frontend build",
+    "start": "uv run uvicorn backend.main:app --port 8000",
+    "start:mock": "USE_MOCK=1 pnpm run start",
+
+    "smoke": "uv run python scripts/smoke.py",
+    "smoke:ui": "pnpm run build && uv run python scripts/smoke.py --ui",
+
+    "slides": "npm --prefix deliverables run ppt",
+
+    "check": "pnpm run check:py && pnpm run check:web",
+    "check:py": "uv run ruff check . && uv run pytest",
+    "check:web": "pnpm -C frontend exec tsc -b && pnpm -C frontend test && pnpm -C frontend lint",
+    "secrets": "./scripts/scan-secrets.sh --all",
+    "preflight": "./scripts/preflight.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

@@ -1,0 +1,6 @@
+# pnpm 은 기본적으로 의존성의 빌드 스크립트를 막는다.
+# esbuild 는 네이티브 바이너리를 내려받아야 하므로 명시적으로 허용한다.
+# 이 파일이 없으면 팀원 PC 에서 `pnpm install` 이 ERR_PNPM_IGNORED_BUILDS 로 멈춘다.
+# (pnpm 12 기준 키는 allowBuilds 다. package.json 의 "pnpm" 필드는 더 이상 읽히지 않는다)
+allowBuilds:
+  esbuild: true

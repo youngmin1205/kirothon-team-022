@@ -1,0 +1,27 @@
+{
+  "name": "aacrew-deliverables-practice",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node tools/capture.mjs",
+    "diagram": "mmdc -i diagrams/architecture.mmd -o diagrams/architecture.svg -p tools/puppeteer.json -b transparent",
+    "video:preview": "remotion studio video/src/index.ts --public-dir video/public",
+    "video:render": "npm run sync && cp captures/demo.webm captures/beats.json video/public/ && cp captures/home.png brand/*.svg brand/*.wav video/public/ 2>/dev/null; remotion render video/src/index.ts DemoFilm video/out/demo.mp4 --public-dir video/public ${REMOTION_BROWSER:+--browser-executable \"$REMOTION_BROWSER\"}",
+    "ppt": "npm run sync && node tools/build-slides.mjs && marp ppt/slides.md --no-stdin --html --theme-set ppt/theme.css --pdf --pdf-notes --allow-local-files -o ppt/slides.pdf",
+    "check": "bash tools/check-banned.sh",
+    "sync": "node tools/sync-docs.mjs",
+    "sfx": "node tools/make-sfx.mjs",
+    "setup": "npm install && npx playwright install chromium ffmpeg && mkdir -p video/public/fonts && cp brand/fonts/*.otf video/public/fonts/",
+    "shot": "node tools/capture.mjs --shot"
+  },
+  "devDependencies": {
+    "@marp-team/marp-cli": "^4.5.1",
+    "@mermaid-js/mermaid-cli": "^12.2.0",
+    "@remotion/cli": "^4.0.542",
+    "lucide-react": "^1.71.0",
+    "playwright": "^1.65.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "^4.0.542"
+  }
+}

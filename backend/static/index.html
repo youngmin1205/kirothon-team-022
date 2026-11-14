@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KIROTHON — 백엔드</title>
+  <!--
+    안내 페이지. 기능은 없다.
+
+    언제 보이나: backend/static_dist/ (pnpm build 결과) 가 없을 때만 이 파일이 / 에
+    서빙된다. 빌드가 있으면 FastAPI 가 실제 화면을 서빙하므로 이 페이지는 안 보인다.
+
+    왜 입력창이 없나: 실제 화면은 React 쪽(:5173)이다. 여기에 입력창을 또 두면
+    어느 쪽이 진짜인지 헷갈리고, 부품도 디자인 토큰도 공유하지 못해 따로 썩는다.
+    이 페이지의 역할은 "화면은 여기가 아니다"를 알려주는 것 하나다.
+  -->
+  <style>
+    :root {
+      --bg: #0b0f17; --panel: #151c2b; --line: rgba(255,255,255,.08);
+      --text: #e6edf7; --muted: #8b97ad; --accent: #ffcc33; --ok: #3ddc97; --warn: #ffb020;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+        "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6; display: flex; align-items: center; justify-content: center; padding: 32px 20px;
+    }
+    main { width: 100%; max-width: 620px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    .eyebrow::before { content: ""; width: 18px; height: 3px; background: var(--accent); border-radius: 2px; }
+    h1 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 8px; }
+    .lead { color: var(--muted); margin: 0 0 24px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      padding: 16px 18px; margin-bottom: 12px;
+    }
+    .card h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 10px; letter-spacing: .02em; }
+    code {
+      font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 13px;
+      background: rgba(255,255,255,.06); padding: 2px 7px; border-radius: 6px; white-space: nowrap;
+    }
+    a { color: var(--accent); }
+    .row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .row + .row { margin-top: 8px; }
+    .label { color: var(--muted); font-size: 13px; min-width: 76px; }
+    #status { font-size: 13px; color: var(--muted); }
+    #status b { color: var(--ok); font-weight: 600; }
+    #status b.warn { color: var(--warn); }
+    .footnote { color: var(--muted); font-size: 12.5px; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">KIROTHON</div>
+    <h1>백엔드가 떠 있습니다</h1>
+    <p class="lead">이 주소는 API 서버입니다. <strong>화면은 여기가 아닙니다.</strong></p>
+
+    <div class="card">
+      <h2>화면을 보려면</h2>
+      <div class="row">
+        <span class="label">개발 중</span>
+        <span><code>pnpm dev</code> → <a href="http://localhost:5173">localhost:5173</a></span>
+      </div>
+      <div class="row">
+        <span class="label">AWS 없이</span>
+        <span><code>pnpm mock</code> → <a href="http://localhost:5173">localhost:5173</a> (고정 시나리오)</span>
+      </div>
+      <div class="row">
+        <span class="label">빌드 후</span>
+        <span><code>pnpm build</code> 하면 <strong>이 주소</strong>가 화면까지 서빙합니다</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>서버 상태</h2>
+      <div id="status">확인 중…</div>
+      <div class="row" style="margin-top: 12px">
+        <a href="/api/health">/api/health</a>
+        <span style="color: var(--muted)">·</span>
+        <a href="/api/docs">/api/docs</a>
+      </div>
+    </div>
+
+    <p class="footnote">
+      이 안내가 보이는 것은 <code>backend/static_dist/</code> 가 없기 때문입니다.
+      <code>pnpm build</code> 를 돌리면 이 페이지 대신 실제 화면이 나옵니다.
+      명령은 모두 레포 루트에서 실행합니다.
+    </p>
+  </main>
+
+  <script>
+    // 이 페이지의 유일한 동작. 백엔드가 어떤 모드인지만 알려준다.
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((d) => {
+        const mock = d.mode === "mock";
+        const mode = mock
+          ? '<b class="warn">고정 시나리오 (mock)</b>'
+          : "<b>Bedrock</b>";
+        const features = (d.features || []).join(", ") || "없음";
+        document.getElementById("status").innerHTML =
+          `모드 ${mode} · 리전 ${d.region} · 기능 ${features}` +
+          (mock ? "<br />자유 대화를 보려면 <code>.env</code> 에 BEDROCK_MODEL_ID 를 넣고 <code>pnpm dev</code> 로 띄웁니다." : "");
+      })
+      .catch(() => {
+        document.getElementById("status").textContent =
+          "상태를 읽지 못했습니다. /api/health 를 직접 열어 보세요.";
+      });
+  </script>
+</body>
+</html>

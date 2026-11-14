@@ -1,0 +1,23 @@
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Pretendard, Apple SD Gothic Neo, sans-serif","fontSize":"18px","primaryColor":"#141a26","primaryTextColor":"#eef2f8","primaryBorderColor":"#5aa9ff","lineColor":"#93a0b8","secondaryColor":"#141a26","tertiaryColor":"#0b0f17","clusterBkg":"#10151f","clusterBorder":"#263044"}}}%%
+flowchart LR
+  U["어르신 앱<br/>봉투 촬영 · 먹었어요"]:::user
+  G["보호자 화면<br/>복약 완료 확인"]:::user
+  subgraph BE["백엔드 (로컬 실행)"]
+    O["오케스트레이터"]:::core
+    R["판독 에이전트<br/>사진 → 약·시간 JSON"]
+    S["일정 에이전트<br/>알림 07:30 · 19:00"]
+    P["안전 에이전트<br/>사람 확인 · 권한 검사"]
+    H["공유 에이전트<br/>보호자에게 결과 전달"]
+  end
+  B[("Amazon Bedrock<br/>Converse API · 비전")]:::aws
+  D[("복약 기록")]
+  U -- 사진 --> O
+  O --> R & P & S & H
+  R -- 이미지 --> B
+  P -- 근거 질의 --> B
+  S --> D
+  H --> D
+  D --> G
+  classDef user fill:#1d2535,stroke:#ffcc33,color:#eef2f8
+  classDef core fill:#ffcc33,stroke:#ffcc33,color:#111
+  classDef aws fill:#1a2a1f,stroke:#3ddc97,color:#eef2f8

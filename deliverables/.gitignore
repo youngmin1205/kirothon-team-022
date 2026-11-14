@@ -1,0 +1,11 @@
+node_modules/
+video/out/
+video/public/
+captures/
+video/src/design.json
+video/src/product.json
+
+# 생성물 (각자 만들고, 공유는 samples/ 또는 제출 폴더로)
+ppt/slides.md
+ppt/slides.pdf
+ppt/theme.css

@@ -21,3 +21,22 @@ out/
 # 기타
 .DS_Store
 *.log
+
+# --- 뼈대(aacrew) 추가 항목 ---
+# 개인 설정 (커밋 금지)
+CLAUDE.local.md
+.claude/settings.local.json
+# 비밀 — .env.example만 허용
+# AWS 자격증명 (프로필 또는 환경변수만 사용)
+.aws/
+credentials
+# Node
+.pnpm-store/
+# Python
+# 빌드·검증 산출물
+backend/static_dist/
+.artifacts/
+# OS / 에디터
+Thumbs.db
+.idea/
+*.swp
