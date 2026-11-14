@@ -3,13 +3,11 @@
 문서 두 개를 고치면 **발표 PDF 8장**과 **60초 데모 영상(MP4)** 이 명령 한 줄로 만들어집니다.
 당일에는 Kiro에게 `/pitch-deck`, `/demo-film`이라고만 말하면 됩니다.
 
-## 0. 먼저 결과물부터 보세요
-| 예시 | 영상 | PPT |
-|---|---|---|
-| 보이스피싱 스파링 (휴대폰 앱) | [samples/h-phishing/demo.mp4](samples/h-phishing/demo.mp4) | [samples/h-phishing/slides.pdf](samples/h-phishing/slides.pdf) |
-| 전세 계약 점검 (웹 서비스) | [samples/c-lease-check/demo.mp4](samples/c-lease-check/demo.mp4) | |
+## 0. 어떤 결과물이 나오나요?
+- **발표 PDF 8장** — `ppt/slides.pdf` (생성 후 레포 최상단 `PRESENTATION.pdf` 로 복사해 커밋)
+- **데모 영상 MP4** — `video/out/demo.mp4` (레포에 올리지 않고 README 의 Demo 줄에 링크로 적습니다)
 
-전세 계약 점검은 kiro-cli에서 `/pitch-deck`과 `/demo-film`을 실행해 Kiro가 `product.md`를 직접 쓰고 만든 결과입니다. 사람은 명령만 입력했고, 영상은 최신 영상 코드로 한 번 더 렌더링했습니다.
+둘 다 `product.md` 와 `design.md` 두 문서에서 나옵니다. 문구를 고치면 결과물이 따라 바뀝니다.
 
 ## 1. 어떻게 만들어지나요?
 ```
@@ -27,7 +25,7 @@ design.md ──┴─ 색·글꼴·모션 ────────────�
 ## 2. 처음 한 번 설치 (각자 PC, 약 3분)
 필요한 것: Node.js 20 이상(25에서 확인), macOS 또는 Linux, ffmpeg(영상 확인용, 선택). Google Chrome이 있으면 녹화 화질이 더 좋습니다.
 
-> ⚠️ **이 폴더의 도구는 현재 macOS 기준입니다 (2026-11-12 실측).**
+> ⚠️ **이 폴더의 도구는 현재 macOS 기준입니다 (실측).**
 > `tools/puppeteer.json`에 Chrome 경로가 `/Applications/Google Chrome.app/...`으로 하드코딩돼 있어 Linux에서는 `npm run diagram`이 실패합니다. 또 Linux에서는 playwright chromium 실행에 시스템 라이브러리가 더 필요합니다(`libasound.so.2` → `sudo npx playwright install-deps chromium`).
 >
 > **당일 담당**: 발표 슬라이드·데모 영상·다이어그램 생성은 **담당3(macOS)** 가 맡습니다.
@@ -38,14 +36,14 @@ cd deliverables
 npm run setup
 ```
 
-## 3. 5분 만에 직접 돌려 보기 (샘플 그대로)
-지금 `product.md`에는 보이스피싱 스파링 예시가 들어 있고, 녹화 대상은 `samples/mockups/`의 목업입니다.
+## 3. 직접 돌려 보기
+`product.md` 에는 **밥은 먹었니** 가 들어 있고, 녹화 대상은 실제 앱 화면입니다.
 ```bash
-npm run capture        # 목업을 자동 조작하며 녹화 (약 30초). 단계마다 "ok"가 찍히면 성공
+pnpm build && pnpm start                        # 레포 루트에서, :8000 단일 프로세스
+DEMO_URL=http://127.0.0.1:8000 npm run capture  # 앱을 자동 조작하며 녹화. 단계마다 "ok" 가 찍히면 성공
 npm run video:render   # video/out/demo.mp4 (약 1분)
 npm run ppt            # ppt/slides.pdf (약 10초)
 ```
-`samples/h-phishing/demo.mp4`와 거의 같은 영상이 나오면 설치가 정상입니다.
 
 ## 4. 당일에 쓰는 법 (Kiro skill)
 kiro-cli나 Kiro IDE 채팅에서 아래처럼 말합니다. skill 위치는 `.kiro/skills/`입니다.
@@ -80,7 +78,7 @@ Kiro가 `product.md`의 `capture` 블록을 쓰고, 녹화와 렌더링을 마�
 <button id="play">▶ 데모 재생</button>
 <section id="result" class="card">…</section>   <!-- 끝나면 class="card show" -->
 ```
-예시는 `samples/mockups/c-lease-check.html`(웹), `samples/mockups/h-phishing-sparring.html`(휴대폰)에 있습니다.
+이 앱에서는 `frontend/src/app/` 의 `#play` 버튼과 `data-beat`·`data-state` 신호가 그 역할을 합니다.
 
 ## 6. product.md 구조
 파일 안에 JSON 블록이 두 개 있습니다. 필드 설명은 전부 `../.kiro/skills/pitch-deck/references/film-schema.md`에 있습니다.

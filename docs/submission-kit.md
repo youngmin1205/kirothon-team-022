@@ -59,9 +59,9 @@ npm --prefix deliverables run ppt
 
 - [ ] **`PRESENTATION.pdf` 는 레포 최상단**에 와야 한다. `deliverables/.gitignore` 가 `ppt/slides.pdf` 를 무시하므로
       생성 후 루트로 복사해야 커밋된다: `cp deliverables/ppt/slides.pdf PRESENTATION.pdf && git add -f PRESENTATION.pdf`
-- [ ] **영상 파일은 레포에 올리지 않는다.** 업로드 후 `README.md` 6행의 주석을 지우고 Demo 줄 끝에 `**영상:** <링크>` 한 줄만 추가
-- [ ] 영상 링크 공개 범위 확인: YouTube **일부 공개**, 또는 드라이브 **링크가 있는 모든 사용자 · 뷰어**
-      (로그아웃한 창에서 열리는지 직접 확인)
+- [x] **영상 링크 완료** — `README.md` 의 "데모 영상" 줄 (드라이브 폴더 링크). 영상 파일은 레포에 올리지 않았다
+- [ ] 영상 링크 공개 범위 확인: 드라이브 **링크가 있는 모든 사용자 · 뷰어**
+      (로그아웃한 창에서 폴더가 열리고 영상이 재생되는지 직접 확인)
 - [ ] 슬라이드·영상의 숫자는 README·BUILD_REPORT 와 같아야 한다 → **백엔드 테스트 64 · 프런트 30 · spec task 11 · 요구사항 R1~R9**
 
 ### 배포 URL (필요할 때만, 2분)

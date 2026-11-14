@@ -3,10 +3,7 @@
 슬라이드와 영상의 문구는 모두 이 파일에서 나옵니다. 구간 구성은 `../.kiro/skills/pitch-deck/references/film-schema.md` 끝의 8구간 표를 따릅니다.
 `demo.steps` 의 id 와 `celebrate.at` 은 `capture.beats` 의 id 와 같아야 합니다. `celebrate` 는 사용자가 핵심 행동을 끝낸 순간에 한 번만 나오는 축하 연출입니다.
 
-**아래는 빈 틀입니다. 값만 바꾸고 키는 지우지 마세요.** 완성된 예시가 둘 있습니다.
-
-- `samples/h-phishing/product.md` — 보이스피싱 스파링 (리허설 2)
-- `samples/a-medication/v3/product.md` — 약봉투 비서 (리허설 1)
+**아래는 빈 틀입니다. 값만 바꾸고 키는 지우지 마세요.**
 
 `demo.steps` 와 `capture.beats` 는 **당일 데모 구간 6~8개**로 늘립니다. 아래에는 모양만 2개 넣어 뒀습니다.
 id 는 `.kiro/steering/product.md` 의 데모 구간 id 와 **똑같이** 씁니다. 그 id 가 화면 신호·영상 구간·mock 응답을 묶습니다.
@@ -231,8 +228,6 @@ id 는 `.kiro/steering/product.md` 의 데모 구간 id 와 **똑같이** 씁니
 **실제 앱을 녹화할 때**는 `url` 을 비우고 `DEMO_URL=http://localhost:5173` 을 주고, `sel` 을 `[data-beat="<id>"][data-state="done"]` 형태로 씁니다. 마지막 `end` 의 `#play:not([disabled])` 가 재생 종료 신호입니다.
 
 `device` 는 `phone`(기본, 휴대폰 틀) 또는 `browser`(넓은 웹 화면)입니다. **`browser` 면 `data-beat` 마커가 늘 화면 안에 있어서 카메라가 안 움직입니다.** beat 마다 `focus` 에 그 구간에서 보여줄 카드 선택자(`#result-card` 등)를 적습니다. 비우면 `sel` 을 씁니다.
-
-**목업을 녹화할 때**는 `url` 에 `samples/mockups/<파일>.html` 을 적고 `sel` 을 그 목업의 선택자로 씁니다.
 
 ```json capture
 {

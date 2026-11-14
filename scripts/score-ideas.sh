@@ -8,8 +8,8 @@
 #
 # 사용법
 #   ./scripts/score-ideas.sh                    # 결과 → docs/idea-selection.md
-#   ./scripts/score-ideas.sh --out docs/practice/idea-selection-rehearsal.md
-#   ./scripts/score-ideas.sh --cards docs/practice/cards-rehearsal.md
+#   ./scripts/score-ideas.sh --out docs/idea-selection-2.md
+#   ./scripts/score-ideas.sh --cards docs/idea-cards.md
 #   ./scripts/score-ideas.sh --dry               # 프롬프트만 출력(모델 호출 없음)
 #
 # 종료 코드: 0 = 성공, 1 = 입력 문제, 2 = 실행 실패

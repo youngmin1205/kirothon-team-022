@@ -1,6 +1,6 @@
 # Kiro 환경 실측 (당일 기준 확정용)
 
-> 측정 PC: Linux · 측정일 2026-11-12 · `kiro-cli 3.2.1`
+> 측정 PC: Linux · `kiro-cli 3.2.1`
 > 팀 문서 중 `kiro-cli 2.2.2` 기준으로 쓰인 부분은 이 문서가 우선합니다.
 
 ---
@@ -178,7 +178,7 @@ Logged in with IAM Identity Center (https://d-9067cd82db.awsapps.com/start)
 Profile: QDefaultProfile
 ```
 
-Free 플랜(월 50 크레딧)이 아니라 IAM Identity Center 계정입니다. `docs/kiro-cli-tips.md`의 "Free = 월 50" 전제는 이 PC에 해당하지 않습니다. **팀원 각자의 로그인 종류가 다를 수 있으니 11/13에 각자 확인이 필요합니다.**
+Free 플랜(월 50 크레딧)이 아니라 IAM Identity Center 계정입니다. `docs/kiro-cli-tips.md`의 "Free = 월 50" 전제는 이 PC에 해당하지 않습니다. **팀원 각자의 로그인 종류가 다를 수 있으니 각자 확인이 필요합니다.**
 
 ---
 
@@ -190,11 +190,11 @@ Free 플랜(월 50 크레딧)이 아니라 IAM Identity Center 계정입니다. 
 | 남은 크레딧 | 대화형에서 `/usage` | `--effort low` 기본 사용, 탐색은 `USE_MOCK=1` |
 | `aws-docs` MCP 실제 호출 | 에이전트에 연결 후 질의 | 웹 검색으로 대체 |
 
-위 세 가지는 **대화형 세션이 필요**해서 비대화형 측정으로는 확인할 수 없었습니다. 11/13 팀 점검 때 각자 한 번 띄워 확인하고 이 문서에 채웁니다.
+위 세 가지는 **대화형 세션이 필요**해서 비대화형 측정으로는 확인할 수 없었습니다. 팀 점검 때 각자 한 번 띄워 확인하고 이 문서에 채웁니다.
 
 ---
 
-## 9. 팀에 전달할 것 (11/13까지)
+## 9. 팀에 전달할 것 (전날까지)
 
 1. `kiro-cli update` → `kiro-cli --version`이 **3.2.1 이상**인지 확인
 2. 레포 루트에서 `kiro-cli` 한 번 띄워 **워크스페이스 신뢰 승인**

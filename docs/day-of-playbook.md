@@ -3,11 +3,11 @@
 > 주제는 10:40에 공개되고 18:00에 제출합니다. 실제 개발은 **약 6시간**입니다.
 > **이 문서대로 진행하고, 당일에 절차를 논의하지 않습니다.** 논의할 것은 "무엇을 만들지"뿐입니다.
 >
-> 숫자 근거: `docs/practice/` 리허설 기록. 미확정 사항은 각 칸에 표시했습니다.
+> 숫자 근거: 사전 리허설 기록. 미확정 사항은 각 칸에 표시했습니다.
 
 ---
 
-## 0. 전날 (11/13) — 전원 반드시
+## 0. 전날 — 전원 반드시
 
 각자 자기 노트북에서 돌립니다. **하나라도 실패하면 당일 아침에 그만큼 날아갑니다.**
 
@@ -44,27 +44,6 @@ pnpm smoke          # "smoke 통과" 가 나와야 합니다
 > ⚠️ **행사장 네트워크로 라이브러리를 받지 마세요.** 반드시 전날 집에서.
 >
 > 발표 산출물 담당(담당3)은 추가로 `pnpm bootstrap:deliverables` 를 돌립니다. **1.7GB이고 macOS에서만 동작합니다.** 나머지 두 사람은 돌리지 않습니다.
-
-### 리허설 흔적 정리 — **완료됨, 확인만** (L)
-
-리허설 주제(보이스피싱 스파링)가 남아 있던 두 곳을 **11/13 에 정리했습니다.** 아래는 확인용입니다.
-
-| 무엇이었나 | 어떻게 처리했나 |
-|---|---|
-| `deliverables/product.md` 가 리허설 주제로 채워져 있었다 | **빈 틀로 교체.** 키 구조는 그대로 두고 값만 비웠다. 리허설 버전은 `samples/h-phishing/product.md` 에 보존 |
-| `.kiro/specs/sparring/` 에 리허설 spec 3파일 | **`docs/practice/spec-example-sparring/` 로 이동.** `.kiro/specs/` 는 진행 중인 spec 자리이므로, 거기 두면 당일 Kiro 가 다른 주제의 맥락을 끌고 올 수 있다 |
-
-- [ ] 지난 주제의 **내용**이 작업 파일에 남아 있지 않은지 확인
-
-      ```bash
-      grep -rn "보이스피싱\|박영수\|sparring" --include='*.md' --include='*.json' \
-        .kiro/ deliverables/product.md backend/ frontend/ \
-        | grep -v "spec-example-sparring\|samples/h-phishing"
-      ```
-
-      **아무것도 안 나와야 정상입니다.** 뒤쪽 `grep -v` 는 **보존 사본을 가리키는 안내 줄**을 빼는 것입니다 (`.kiro/specs/README.md` 와 `deliverables/product.md` 머리말이 "예시는 여기 있다"고 알려 줍니다). 그 두 줄은 내용 누출이 아닙니다.
-
-      `docs/practice/` 와 `deliverables/samples/` 는 검사 대상이 아닙니다. 리허설 자료가 거기 남아 있는 건 정상이고, 폴더 이름으로 "참고용"이 분명해서 혼동되지 않습니다.
 
 - [ ] `.kiro/steering/product.md` 가 **비어 있는지** 확인만 (`inclusion: always` 라 채우면 모든 세션에 붙습니다. 당일 11:10 에 채웁니다)
 
@@ -173,7 +152,7 @@ mock 은 **비상용**입니다. live 녹화가 실패하거나 무대 네트워
 표의 두 단위를 먼저 설명합니다.
 
 - **웨이브** — 셋이 동시에 작업하는 시간 구간입니다. 한 웨이브 안의 작업은 서로 기다리지 않고
-  시작할 수 있게 쪼갭니다 (쪼갠 예: `docs/practice/spec-example-sparring/tasks.md`).
+  시작할 수 있게 쪼갭니다 (쪼갠 예: `.kiro/specs/bab/tasks.md`).
   웨이브 1은 뼈대, 2는 실제 로직, 3은 품질·예외·연출입니다.
 - 🔴 **통합 체크포인트** — 전원이 멈추고 코드를 합쳐 데모가 끝까지 도는지 보는 지점입니다.
   `git pull --rebase --autostash && pnpm smoke`. **안 돌면 기능을 더 붙이지 않고 그것부터 고칩니다.**
@@ -442,7 +421,7 @@ git pull --rebase --autostash && pnpm smoke   # 각자
 | 채연 | **BE** | 백엔드 + 에이전트 프롬프트·도구 | `backend/features/<기능>/` |
 | 세민 | **FE** | 프런트 + 발표 산출물 | `frontend/src/features/<기능>/`, `deliverables/` |
 
-> 역할은 11/13에 팀과 확정하세요. 위는 지금까지 올라온 작업물 기준 제안입니다.
+> 역할은 사전에 팀과 확정하세요. 위는 지금까지 올라온 작업물 기준 제안입니다.
 > `.kiro/specs/` 의 task 라벨도 **L · BE · FE 세 개만** 씁니다.
 
 **공용 파일은 lead만 고칩니다**: `backend/main.py`, `backend/core/`, `frontend/src/app/`, `frontend/src/ui/`, `frontend/src/types/api.ts`, `.kiro/steering/product.md`
@@ -598,7 +577,6 @@ Kiro 사용이 필수 조건이라 피칭에서 쓸 가능성이 높습니다. *
 
 | 항목 | 모르면 어떻게 |
 |---|---|
-| ~~사전 작성 코드 허용 범위~~ | **전제: 허용됩니다.** 뼈대 앱을 그대로 씁니다 (11/13 결정) |
 | 제출물 형식 | 5장의 분기를 전부 준비해 뒀다. 요건을 읽고 필요한 것만 실행 |
 | 심사 기준 | 모름. `docs/idea-scoring.md` 기준으로 진행 |
 | AWS 계정 제공 여부 | 받으면 `aws-check.sh --invoke`. 못 받으면 각자 개인 계정으로 Bedrock 모델 액세스만 켠다. 녹화는 live 가 기본, 안 되면 mock 으로 대체 |

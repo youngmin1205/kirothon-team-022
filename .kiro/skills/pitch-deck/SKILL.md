@@ -17,7 +17,7 @@ metadata:
    - `.kiro/specs/*/requirements.md`, `design.md` (핵심 흐름, 구조)
    - `docs/api-contract.md`, `docs/kiro-usage-log.md` (구조도, Kiro 실측 수치)
 2. `references/film-schema.md`를 읽고, `deliverables/product.md`의 ```` ```json film ```` 블록을 새 주제로 다시 쓴다.
-   - 완성된 예시는 `deliverables/samples/h-phishing/product.md`이다. 필드 이름과 구조를 그대로 따른다.
+   - 필드 이름과 구조는 `references/film-schema.md` 의 스키마를 그대로 따른다.
    - `capture` 블록은 `url`과 `device`만 고친다. `beats`는 `demo-film` skill이 맡는다. 단, `demo.steps`의 `id`는 `capture.beats`의 `id`와 같아야 한다.
 3. 오프닝 그림이 없으면 `deliverables/brand/<주제>.svg`를 만든다. 720×720, 배경 없음, `design.md`의 색만 쓴다. 이모지와 그라데이션은 쓰지 않는다. 그다음 `opening.image`에 파일 이름을 적는다.
 4. 슬라이드 4장에 넣을 앱 대표 화면을 찍는다. `capture` 블록의 `url`과 `device`(모바일 화면이면 `"phone"`, 웹 화면이면 `"browser"`)만 새 주제에 맞게 고치고, `beats`는 `demo-film` skill에 맡긴다. 직접 스크린샷을 찍지 말고 아래 `npm run shot`을 쓴다.

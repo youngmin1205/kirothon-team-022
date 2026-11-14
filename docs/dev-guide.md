@@ -174,7 +174,7 @@ pnpm mock                       # 데모 실행 → http://localhost:5173
 | [`docs/kiro-env.md`](docs/kiro-env.md) | kiro-cli 3.2.1 실측 기록 |
 | [`docs/kiro-setup.md`](docs/kiro-setup.md) | Kiro 세팅 상세 |
 | [`docs/custom-agents.md`](docs/custom-agents.md) · [`docs/hooks.md`](docs/hooks.md) | 에이전트 · 훅 구성법 |
-| [`docs/practice/spec-example-sparring/`](docs/practice/spec-example-sparring/) | 리허설에서 만든 예시 spec |
+| [`.kiro/specs/bab/`](.kiro/specs/bab/) | 이 기능의 spec 3파일 (요구사항·설계·task) |
 
 ---
 

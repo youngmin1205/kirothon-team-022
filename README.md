@@ -3,9 +3,8 @@
 떨어져 사는 자녀가 사진 한 장과 기분 버튼 하나로 엄마·아빠에게 각자 맞는 안부를 보내고, 부모님은 앱 설치 없이 버튼으로 답합니다.
 
 **Demo:** https://d19xe2a33mtra6.cloudfront.net/?feature=bab — 자녀 폰과 엄마 폰이 나란히 보입니다. 「데모 재생」을 누르면 자녀가 사진을 올리는 순간부터 부모님 답장이 돌아오기까지 전 과정이 자동으로 재생됩니다. 사진을 직접 올리면 실제 AI(Amazon Bedrock)가 사진을 보고 알아봅니다. 실제 휴대폰에서는 [자녀 폰 화면](https://d19xe2a33mtra6.cloudfront.net/?feature=bab&view=child)으로 직접 눌러 볼 수 있습니다.
-<!-- 세민: 영상 업로드 후 이 주석을 지우고 위 Demo 줄 끝에 "**영상:** <링크>" 를 추가한다.
-     공개 범위는 YouTube 일부 공개 또는 드라이브(링크가 있는 모든 사용자 · 뷰어). 영상 파일은 레포에 올리지 않는다. -->
 
+**데모 영상:** https://drive.google.com/drive/folders/1jFWWLKfT282l8f_Uy8kfZYwIqChtO77f?usp=drive_link
 ---
 
 ## 1. 문제 정의

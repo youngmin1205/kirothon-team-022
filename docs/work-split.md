@@ -1,6 +1,6 @@
 # 작업 분배 · 각자 시작하는 법 (밥은 먹었니)
 
-> 13:50 작성. 아이디어 요약은 [`bab-idea.html`](bab-idea.html), 규칙 원본은 [`.kiro/steering/product.md`](../.kiro/steering/product.md).
+> 13:50 작성. 규칙 원본은 [`.kiro/steering/product.md`](../.kiro/steering/product.md).
 > 계약 파일은 이미 main 에 있다: `backend/features/bab/mock.json` · `profiles.json` · `tests/test_bab_contract.py`
 >
 > **14:00 변경 — task 1 담당이 채연(BE) → 영신(L) 으로 바뀌었다.** 순수 코드 도구(프로필 필터 · 요약 ·
@@ -227,7 +227,7 @@ useDemo({ feature: 'bab' }) 의 dataByBeat 로 구간마다 그리고, 화면 �
 
 ```
 나는 세민(FE)이야. .kiro/specs/bab/tasks.md 의 FE task 중 다음 미완료 하나만 해줘.
-docs/work-split.md 2장 입력 계약과 docs/bab-idea.html 3장 화면 예시를 따른다.
+docs/work-split.md 2장 입력 계약을 따른다.
 끝나면 pnpm smoke 를 돌려줘.
 ```
 
