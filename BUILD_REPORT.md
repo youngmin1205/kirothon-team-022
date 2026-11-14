@@ -1,10 +1,7 @@
 # BUILD REPORT
 
-<!-- Kiro를 개발 과정의 어느 단계에서, 어떤 기능으로, 무엇을 했는지 기록해 주세요.
-     1차 AI 심사는 이 문서와 .kiro/ 폴더를 보고 Kiro 활용을 평가해요. -->
-
 > 서비스: **밥은 먹었니** — 사진 한 번, 기분 버튼 하나로 엄마·아빠에게 각자 맞는 안부가 가고, 부모님은 설치 없이 버튼으로 답한다.
-> 기록 기준 시각: 11/14 14:15 (커밋 `cb2a06d`). 이후 단계는 진행하면서 이어서 채운다.
+> 기록 범위: 11/14 제출본 전체. 검증 수치는 제출 직전 실측값이다 (백엔드 테스트 64개 · 프런트 테스트 30개 통과, spec task 11개).
 
 ## Kiro 활용 내역
 
@@ -14,23 +11,23 @@
 | 사전 준비 | Custom agents | 3명 공용 개발 에이전트 `build` 와 별도 세션용 리뷰 에이전트 `review`. `build` 는 steering·skill 을 로드하고 공용 파일(lead 영역)을 건드리기 전에 먼저 알리도록 지시 | `.kiro/agents/build.json`, `.kiro/agents/review.json` |
 | 사전 준비 | Hooks | 에이전트 시작 시 `git status` 표시(agentSpawn), task 완료 후 steering 위반·데모 깨짐·에러 처리 누락을 3줄로 지적하는 리뷰(PostTaskExec) | `.kiro/agents/build.json`, `.kiro/hooks/review-on-task.json` |
 | 사전 준비 | Skills | PR 리뷰, 발표 슬라이드, 데모 영상 생성 절차를 skill 로 묶음 | `.kiro/skills/{pr-review,pitch-deck,demo-film}/` |
-| 기획 | Steering (product.md) | 당일 주제 문구, 사용자·문제·해결, 데모 구간 8개, **고정 규칙**(안부 항목 4개 고정, 기분은 버튼 선택, 부모님은 고정 버튼, 프로필에 없는 항목은 코드가 먼저 걸러냄), 범위 밖, 축소안을 기록. `inclusion: always` 라서 팀원 셋의 Kiro 세션에 같은 기준이 자동으로 붙음. 기획 대화와 문서 작성은 Claude Code 로 진행 | `.kiro/steering/product.md` (커밋 `bcd0496`) |
-| 설계 | — (계약 선커밋) | Kiro spec 에 들어가기 전에 화면·서버가 공유할 형식을 먼저 고정. 8구간 mock 시나리오와 고정 어휘·받는 사람 프로필. 프런트는 백엔드 로직 없이 화면을 끝까지 만들 수 있음. Claude Code 로 작성 | `backend/features/bab/mock.json`, `backend/features/bab/profiles.json` (커밋 `1cb5e93`) |
+| 기획 | Steering (product.md) | 당일 주제 문구, 사용자·문제·해결, 데모 구간 8개, **고정 규칙**(안부 항목 4개 고정, 기분은 버튼 선택, 부모님은 고정 버튼, 프로필에 없는 항목은 코드가 먼저 걸러냄), 범위 밖, 축소안을 기록. `inclusion: always` 로 두어 팀원 셋의 Kiro 세션에 같은 기준이 자동으로 붙음 | `.kiro/steering/product.md` (커밋 `bcd0496`) |
+| 설계 | — (계약 선커밋) | Kiro spec 에 들어가기 전에 화면·서버가 공유할 형식을 먼저 고정. 8구간 mock 시나리오와 고정 어휘·받는 사람 프로필. 프런트는 백엔드 로직 없이 화면을 끝까지 만들 수 있음 | `backend/features/bab/mock.json`, `backend/features/bab/profiles.json` (커밋 `1cb5e93`) |
 | 설계 | **Spec (requirements · design)** | `kiro-cli --agent build` 대화형으로 `.kiro/specs/bab/` 생성. product.md "고정 규칙" 절을 **수락 기준 R1~R8** 로 옮김 (예: R4-2 "아빠에게 넘기는 모델 입력에 `mood` 가 없다"). design 에서 `core/agent_loop.py` 를 읽고 **받는 사람별로 임시 `Session` 을 분리**하기로 결정 — 이력을 공유하면 엄마용 응답이 아빠용 호출 입력에 섞여 코드 필터가 무의미해진다. live 에서만 터질 버그를 구현 전에 잡음 | `.kiro/specs/bab/requirements.md`, `design.md` (커밋 `35da104`) |
 | 구현 분배 | **Spec (tasks)** | task 11개에 `L` · `BE` · `FE` 라벨. task 마다 `_요구사항: R3, R4_` 로 수락 기준을 연결해 "끝났다"의 기준을 문서화. 선행 의존은 task 1 하나뿐이고 나머지는 독립이라 3명이 동시에 진행 | `.kiro/specs/bab/tasks.md` (커밋 `35da104`) |
 | 구현 | **Spec task 1 + Steering** | 순수 코드 규칙 `rules.py` 를 Kiro 로 구현 (프로필 필터 · 요약 · 말풍선 조립 · 입력 정규화 · mock 폴백). steering `backend.md`·`product.md` 가 항상 붙어 있어 "고정 어휘는 `profiles.json` 에서 읽는다"·"`core/` 는 고치지 않는다" 를 따로 지시하지 않음. 단위 테스트 18개를 함께 생성하다 `build_summary` 가 모델 응답에 없는 `emoji`·`label` 키를 믿고 있던 `KeyError` 를 발견해 수정 | `backend/features/bab/rules.py`, `tests/test_bab_rules.py` (커밋 `cb2a06d`) |
 | 구현 | **Spec task 3 (judge) + Agent** | `service.py` 에 `JUDGE_SYSTEM` 과 `judge` 에이전트(`parse=parse_json_block`). 사진→**밥·귀가만** 판정(R2), 첨부 없으면 `samples/` 사진을 붙이고, 모델이 기분을 끼워 넣어도 `rules.normalize_checks` 가 코드로 제거. 모델이 JSON 을 안 주면 `rules.mock_data("judge")` 로 폴백(R8). `service.profiles()` 중복을 `rules.profiles()` 로 합침 | `backend/features/bab/service.py` (커밋 `5cd6b87`) |
 | 구현 | **Spec task 4 (compose) + Agent** | `COMPOSE_SYSTEM` + `compose` 에이전트. 받는 사람마다 `rules.filter_facts` 로 **공개 항목만 남겨** 모델에 넘기고(R4), 받는 사람별 **임시 `Session`** 으로 기분 누수 차단(R4-2). 요약은 `rules.build_summary` 가 코드로 조립(R5-4), 본문 text 만 모델이 씀. 흐름 테스트 4개로 "아빠 메시지에 기분 0건·엄마≠아빠" 확인 | `backend/features/bab/service.py`, `tests/test_bab_flow.py` (커밋 `5cd6b87`) |
 | 구현 | **Spec task 2 + 세션 간 인터페이스 핸드오프** | service.py 가 `STEPS`·`run_judge`·`run_compose` 를 인터페이스로 노출 → **다른 Kiro 세션이 이를 import 해 `router.py` 단계 배선**(`s.state["step"]`)을 구현. 같은 파일을 동시에 고치지 않아 병렬 작업이 충돌 없이 합쳐짐. live 는 구간별 data 를 만들고 mock 은 기존 재생 경로 유지(R1), data 가 비면 mock 폴백(R8-4) | `backend/features/bab/router.py`·`service.py` (커밋 `7afe587`·`5cd6b87`) |
-| 구현 | **Spec tasks 5~9 (FE) + Steering (frontend.md)** | 세민. task 5~9 의 수락 기준을 그대로 화면 테스트로 옮겨 구현 기준으로 삼음 (예: "아빠 카드 본문에 `피곤`·`😪` 0건", "직접 누른 경로가 입력 계약대로 보낸다"). steering `frontend.md` 의 `#play`·`data-beat` 고정 규칙 때문에 녹화·smoke 경로를 건드리지 않고 화면만 갈아엎을 수 있었음. 코드 작성은 Claude Code 로 했고 PostTaskExec 훅은 돌지 않았다. 대신 완료 기준을 tasks.md 체크와 vitest 로 남김 | `frontend/src/features/bab/`, `bab.test.tsx` (커밋 `6f64299`) |
+| 구현 | **Spec tasks 5~9 (수락 기준) · Steering (frontend.md)** | 세민. task 5~9 의 수락 기준을 그대로 화면 구현·테스트 기준으로 삼음 (예: "아빠 카드 본문에 `피곤`·`😪` 0건", "직접 누른 경로가 입력 계약대로 보낸다"). steering `frontend.md` 의 `#play`·`data-beat` 고정 규칙 때문에 녹화·smoke 경로를 건드리지 않고 화면만 갈아엎을 수 있었음. 완료 기준은 tasks.md 체크와 vitest 로 남김 | `frontend/src/features/bab/`, `bab.test.tsx` (커밋 `6f64299`) |
 | 구현 | Spec (계약 확장) | 실제 폰 두 대 테스트용 화면. `?view=child`(자녀 단독·공유 시트·답장 폴링), `?view=mom&s=`(부모님 링크). `deliver` 응답에 `session` 필드와 `GET /api/bab/link/{id}` 를 **추가만** 해서 계약 테스트(`test_bab_contract.py`)가 그대로 통과 | `frontend/src/features/bab/remote.tsx`, `router.py` (커밋 `72e0fc6`) |
 | 검증 → Spec 갱신 | **Spec requirements 수정 + Custom agent `review`** | live 에서 "밥이 아닌 사진도 '밥 잘 먹었어'" 버그를 발견. 원인 3단계를 고치면서 **수락 기준을 먼저 고침**: R2-3 보강(올린 사진이 있으면 샘플로 바꾸지 않는다), **R4-5 신설**(확인 뒤에도 `unknown` 인 항목은 누구에게도 보내지 않는다). 기준마다 테스트 4개. 수정 후 `kiro-cli chat --no-interactive --agent review` 로 커밋 범위를 리뷰 → `OK` | `.kiro/specs/bab/requirements.md`, `tests/test_bab_photo_reuse.py`, `tests/test_bab_rules.py` (커밋 `72e0fc6`·`677e8a5`) |
 | 검증 → Spec 갱신 | **Spec requirements R4-6 + 코드 가드레일** | 자녀가 "아직"을 눌렀는데 엄마 메시지가 "밥이랑 집은 아직 확인 못했어요", 배포본에서는 judge 설명("점심 식사 완료")을 믿고 "점심 잘 먹었어. 괜찮아!"까지 나옴. 프롬프트를 더 쓰는 대신 **사실의 뜻을 코드로 고정**: ① 모델에는 status 코드 대신 코드가 만든 사실 문장(`fact_sentences`)만, ② 상태만 바꾸면 낡은 설명 삭제, ③ 출력 검증(`check_text`) → 1회 재시도 → 코드 문장 폴백. 테스트 4개 추가(64개 통과), live 재현 케이스 정상 | `backend/features/bab/rules.py`·`service.py`, `.kiro/specs/bab/requirements.md` |
-| 산출물 | Skills (pitch-deck · demo-film) | `.kiro/skills/` 의 절차서대로 `deliverables/product.md` 영상 대본·capture beats 8개·`celebrate.at=reply` 를 채우고 슬라이드 PDF·데모 영상을 생성. 실행은 Claude Code 가 SKILL.md 를 읽고 수행. 최종 데모 영상은 템플릿 대신 앱 화면을 live(Bedrock)로 그대로 녹화 | `deliverables/product.md`, `deliverables/tools/record-app.cjs` |
-| 검증 | — (계약 테스트 + 단위 테스트) | 문서·mock·프로필이 어긋나면 실패하는 계약 테스트 8개 + 수락 기준을 직접 확인하는 단위 테스트 18개. 구간 id 일치, AI 판정은 밥·귀가만, **아빠 입력에 `mood` 키 자체가 없음**, 링크를 안 열어도 말풍선에 요약이 있음, 부모님 반응은 고정 버튼만. `pytest` 64개 통과, `pnpm smoke` 로 bab 8구간 완주(USE_MOCK=1) | `tests/test_bab_contract.py`, `tests/test_bab_rules.py`, `tests/test_bab_flow.py` |
+| 산출물 | Skills (pitch-deck · demo-film) | `.kiro/skills/` 에 발표 슬라이드·데모 영상 생성 절차를 skill 로 작성하고, 그 절차대로 `deliverables/product.md` 의 영상 대본·capture beats 8개·`celebrate.at=reply` 를 채움. 최종 데모 영상은 템플릿 대신 앱 화면을 live(Bedrock)로 그대로 녹화 | `deliverables/product.md`, `deliverables/tools/record-app.cjs` |
+| 검증 | — (계약 테스트 + 단위 테스트) | 문서·mock·프로필이 어긋나면 실패하는 계약 테스트 8개 + 수락 기준을 직접 확인하는 단위 테스트 22개. 구간 id 일치, AI 판정은 밥·귀가만, **아빠 입력에 `mood` 키 자체가 없음**, 링크를 안 열어도 말풍선에 요약이 있음, 부모님 반응은 고정 버튼만. 백엔드 `pytest` 64개·프런트 `vitest` 30개 통과, `pnpm smoke` 로 bab 8구간 완주(USE_MOCK=1) | `tests/test_bab_contract.py`, `tests/test_bab_rules.py`, `tests/test_bab_flow.py` |
 | 검증 | **live 실측 (USE_MOCK=0 · Bedrock)** | `pnpm dev` 를 live 로 띄워 8구간 1회 완주. judge·compose 가 **실제 Bedrock(claude-sonnet-4-5) 호출**(폴백 경고 0건)되고, **아빠 메시지에 기분 표현 0건(R4-2)·엄마≠아빠(R5-3)** 를 live 에서 재확인 — mock 재생이 아니라 실제 모델 경로에서도 코드 필터가 지켜짐을 확인 | `backend/features/bab/{service,router}.py` |
 | 확장 | **Spec-first 기능 추가 (R9) — 말투·호칭·보이스** | 범위 밖이던 "받는 사람 말투 변경"을 requirements→코드→테스트 순으로 추가. `service.py` 의 `normalize_style` 이 말투 프리셋/커스텀·자유 호칭(`call_them`)·자녀 보이스를 길이·개수로 검증해 `compose` 프롬프트에만 주입한다. **공개 여부(`filter_facts`)는 불변** — 불변식 테스트로 "말투를 아무리 바꿔도 걸러진 기분은 아빠 입력에 다시 안 들어온다"를 보장. FE(＋시트 말투 칩·호칭 입력)까지 붙어 end-to-end, live 로 "아빠=사투리"(아부지~ 들어왔심더) 재생성과 기분 0건 유지를 확인 | `backend/features/bab/service.py`, `tests/test_bab_flow.py`, `frontend/src/features/bab/` (커밋 `1119994`·`8609638`) |
-| 기타 | MCP | (사용하면 기록) | `.kiro/settings/mcp.json` |
+| 기타 | MCP | `aws-docs` 서버를 워크스페이스에 설정해 Bedrock·AWS 설정을 확인할 때 문서를 바로 조회할 수 있게 둠. 제품 기능 구현 경로에는 쓰지 않았다 | `.kiro/settings/mcp.json` |
 
 ## 개발 과정에서 바뀐 점
 

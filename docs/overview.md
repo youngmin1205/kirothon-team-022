@@ -466,7 +466,6 @@ Kiro가 **매 세션 자동으로 읽는** 설정입니다. 레포 루트에서 
 | [`kiro-cli-tips.md`](kiro-cli-tips.md) | `/rewind`·세션 재개·크레딧 (담당2) |
 | [`mcp-powers-skills.md`](mcp-powers-skills.md) | MCP·스킬 설치 (담당2) |
 | [`integration-workflow.md`](integration-workflow.md) | 담당2×담당3 연동 흐름 |
-| [`claude-code-vs-kiro.md`](claude-code-vs-kiro.md) | Claude Code와 Kiro 기능 비교 |
 | [`kiro-usage-log.md`](kiro-usage-log.md) | 당일 Kiro 활용 기록 양식 (발표 소재) |
 | [`../deliverables/README.md`](../deliverables/README.md) | 발표 슬라이드·영상 도구 (담당3) |
 
