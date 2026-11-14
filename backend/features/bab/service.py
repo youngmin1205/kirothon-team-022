@@ -54,6 +54,20 @@ STEPS: list[str] = [
 # (frontend/src/app/useDemo.ts:307). 라벨은 rules 의 기본 라벨 순서와 맞춘다.
 SAMPLE_PHOTOS: tuple[str, ...] = ("lunch.jpg", "door.jpg")
 
+# 받는 사람 말투 프리셋. 화면은 이 key 를 보내고, 여기 문자열로 풀어 모델 tone 에 넣는다.
+# 모르는 key 는 무시하고 받는 사람 프로필의 기본 tone 을 쓴다 (R9). 말투는 "어떻게 쓸지"만
+# 바꾼다 — 무엇을 공개할지는 rules.filter_facts 가 그대로 결정한다.
+TONE_PRESETS: dict[str, str] = {
+    "warm": "다정하고 구체적으로, 반말",
+    "brief": "짧고 담백하게",
+    "formal": "정중한 존댓말로",
+    "dialect": "구수한 경상도 사투리로",
+    "cheerful": "밝고 가볍게, 이모지를 조금 섞어",
+}
+MAX_TONE = 40  # 커스텀 말투 문자열 상한
+MAX_VOICE_ITEMS = 3  # 자녀 말투 예시 문장 개수 상한
+MAX_VOICE_LEN = 80  # 예시 문장 하나의 길이 상한
+
 
 # ── 에이전트 프롬프트 ──────────────────────────────────────────────────────
 
@@ -77,6 +91,8 @@ COMPOSE_SYSTEM = (
     "입력(JSON)에 담긴 항목만 쓴다. 입력에 없는 것은 모르는 것이니 지어내거나 추측하지 않는다. "
     "기분(mood)이 입력에 있으면 그 뜻을 바꾸지 않는다. "
     "힘들다·아프다·피곤하다를 괜찮다로 바꾸지 말고 말투만 다듬는다. "
+    "voice_examples 가 있으면 그 말버릇·이모지를 따라 쓰되, 받는 사람과의 관계(존댓말/반말)는 "
+    "tone 을 우선한다. 입력에 없는 사실은 말투 때문에라도 지어내지 않는다. "
     "받는 사람의 tone 에 맞춰 두 문장 이내로 쓴다. "
     "답은 아래 JSON 한 덩어리로만 준다.\n"
     '```json\n{"text": "엄마~ 점심 잘 먹었고 9시에 집 들어왔어."}\n```'
@@ -163,15 +179,61 @@ def _present_items(allowed: dict[str, Any]) -> list[str]:
     return present + [k for k in ("mood", "note") if k in allowed]
 
 
-def _compose_prompt(allowed: dict[str, Any], summary: str) -> str:
+def normalize_style(payload: dict[str, Any] | None) -> dict[str, Any]:
+    """compose 의 선택 입력(말투·보이스)을 안전하게 다듬는다 (R9).
+
+    핵심: 이 함수는 **무엇을 공개할지에 관여하지 않는다.** 오직 "어떻게 쓸지"(tone·voice)만
+    만든다. 공개 여부는 rules.filter_facts 가 그대로 결정하므로, 화면이 말투를 아무리 바꿔도
+    걸러진 항목(예: 아빠의 기분)은 다시 들어오지 않는다.
+
+    - tones[recipientId]: 프리셋 key 면 TONE_PRESETS 로 풀고, 커스텀 문자열이면 길이 제한.
+      모르는 값은 버린다(→ 프로필 기본 tone 유지).
+    - voice: 자녀 말투 예시 문장. 개수·길이 제한.
+    """
+    if not isinstance(payload, dict):
+        return {"tones": {}, "voice": []}
+
+    tones: dict[str, str] = {}
+    raw_tones = payload.get("tones")
+    if isinstance(raw_tones, dict):
+        for rid, val in raw_tones.items():
+            if not isinstance(rid, str) or not isinstance(val, str):
+                continue
+            text = TONE_PRESETS.get(val) or " ".join(val.split())[:MAX_TONE]
+            if text:
+                tones[rid] = text
+
+    voice: list[str] = []
+    raw_voice = payload.get("voice")
+    if isinstance(raw_voice, list):
+        for s in raw_voice:
+            if not isinstance(s, str):
+                continue
+            cleaned = " ".join(s.split())[:MAX_VOICE_LEN]
+            if cleaned:
+                voice.append(cleaned)
+            if len(voice) >= MAX_VOICE_ITEMS:
+                break
+
+    return {"tones": tones, "voice": voice}
+
+
+def _compose_prompt(
+    allowed: dict[str, Any],
+    summary: str,
+    tone: str | None = None,
+    voice: list[str] | None = None,
+) -> str:
     """모델에 넘길 한 덩어리. filter_facts 로 **이미 걸러진** 입력만 담는다.
 
     아빠 프로필에 mood 가 없으면 이 JSON 에 mood 키 자체가 없다. "말하지 마"라고
-    적어서 막는 것이 아니라, 입력에 존재하지 않게 만든다 (R4-1).
+    적어서 막는 것이 아니라, 입력에 존재하지 않게 만든다 (R4-1). tone·voice 는 말투만
+    바꾸고, 공개 항목에는 손대지 않는다 (R9).
     """
     payload: dict[str, Any] = {
         "to": allowed["name"],
-        "tone": allowed.get("tone", ""),
+        # 화면이 말투를 바꿨으면 그 값을, 아니면 프로필 기본 tone 을 쓴다
+        "tone": tone or allowed.get("tone", ""),
         # 프로필의 공개 항목이 아니라 **실제로 값이 있는** 항목만 넘긴다. 프로필 목록을 주면
         # unknown 이라 빠진 밥·귀가까지 모델이 "잘 먹었어"로 지어낸다 (R4-5)
         "items": _present_items(allowed),
@@ -180,6 +242,8 @@ def _compose_prompt(allowed: dict[str, Any], summary: str) -> str:
     for key in ("checks", "mood", "note"):
         if key in allowed:
             payload[key] = allowed[key]
+    if voice:
+        payload["voice_examples"] = voice
     return f"{allowed['name']}에게 보낼 안부 메시지를 써 줘.\n{json.dumps(payload, ensure_ascii=False)}"
 
 
@@ -209,16 +273,23 @@ def run_compose(parent: Session) -> dict[str, Any]:
     - 받는 사람마다 임시 세션을 따로 써서 기분이 아빠 호출에 새지 않게 한다 (R4-2).
     - summary 는 rules.build_summary 가 조립한다. 모델 출력으로 만들지 않는다 (R5-4).
     - items 는 그 사람 프로필과 같다. text 만 모델이 쓴다.
+    - 화면이 말투/보이스(state["input"].tones·voice)를 보냈으면 반영한다. 말투는 "어떻게
+      쓸지"만 바꾸고, 공개 여부는 filter_facts 가 그대로 결정한다 (R9).
     """
     facts = parent.state.get("facts", {})
+    style = normalize_style(parent.state.get("input"))
     compose = orchestrator.agents["compose"]
     messages: list[dict[str, Any]] = []
     for recipient in rules.recipients():
         allowed = rules.filter_facts(recipient, facts)
         summary = rules.build_summary(recipient, facts)
+        tone = style["tones"].get(recipient["id"])
         if _present_items(allowed):
             text = _compose_text(
-                compose.run(_scratch(parent, "compose"), _compose_prompt(allowed, summary)),
+                compose.run(
+                    _scratch(parent, "compose"),
+                    _compose_prompt(allowed, summary, tone, style["voice"]),
+                ),
                 recipient, summary,
             )
         else:
