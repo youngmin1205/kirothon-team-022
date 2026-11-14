@@ -2,6 +2,10 @@
 
 > 13:50 작성. 아이디어 요약은 [`bab-idea.html`](bab-idea.html), 규칙 원본은 [`.kiro/steering/product.md`](../.kiro/steering/product.md).
 > 계약 파일은 이미 main 에 있다: `backend/features/bab/mock.json` · `profiles.json` · `tests/test_bab_contract.py`
+>
+> **14:00 변경 — task 1 담당이 채연(BE) → 영신(L) 으로 바뀌었다.** 순수 코드 도구(프로필 필터 · 요약 ·
+> 말풍선 조립)를 `backend/features/bab/rules.py` 로 분리해 영신이 맡는다. 채연은 에이전트 2개와 단계
+> 진행에 집중한다. 파일이 갈려서 같은 파일을 동시에 고치지 않는다.
 
 ## 0. 분배는 이렇게 한다
 
@@ -33,7 +37,7 @@ spec 을 기다리는 15분 동안 세민·채연은 아래 "spec 전에 할 것
 |---|---|---|---|
 | 14:00~14:15 | spec 3파일 (Kiro 대화형) | Bedrock 확인 · 샘플 사진 | mock 으로 화면 틀 시작 |
 | 14:15~14:20 | tasks 라벨 확정 → 채널 공지 | 하던 것을 task 번호에 맞춤 | 하던 것을 task 번호에 맞춤 |
-| 14:20~15:30 | 통합 · 막힌 사람 지원 · Kiro 기록 | **웨이브 2** 로직 | **웨이브 2** 8구간 화면 |
+| 14:20~15:30 | **task 1** `rules.py` → push · 통합 · Kiro 기록 | **웨이브 2** 로직 (task 2·3·4) | **웨이브 2** 8구간 화면 |
 | **15:30** | 🔴 체크포인트 2 — 통합 | live 1회 확인 | **영상 v1 녹화** |
 | 15:30~16:30 | BUILD_REPORT · README | 예외 처리 · 품질 | 연출 · 슬라이드 준비 |
 | **16:30** | 🔴 체크포인트 3 | | 영상 v2 · 슬라이드 |
@@ -103,6 +107,7 @@ docs/work-split.md 4장의 예상 task 목록과 비슷하게 맞춰줘.
 - [ ] 14:00 spec — requirements 확인 (핵심 시나리오 1개, 로그인·설정은 범위 밖인가)
 - [ ] design 확인 (지금 뼈대로 되는가, 단계는 `s.state["step"]` 인가)
 - [ ] tasks 확인 → 라벨 → 커밋·push → **채널에 "tasks 나왔다, 번호 맞춰라" 공지**
+- [ ] **task 1 (L)** — `backend/features/bab/rules.py` + 단위 테스트. 채연이 task 3·4 에서 import 하므로 **14:20 까지 push**
 - [ ] spec 3파일·라벨 화면 **캡처** (`docs/kiro-usage-log.md` 의 캡처할 장면 5개)
 - [ ] 15:30 체크포인트 2 — 전원 push 확인 → `pnpm smoke` → 데모 1회 재생
 - [ ] PostTaskExec 리뷰 훅이 돈 장면 캡처, `docs/kiro-usage-log.md` 에 시각별 한 줄씩
@@ -120,7 +125,7 @@ docs/work-split.md 4장의 예상 task 목록과 비슷하게 맞춰줘.
 
 | # | 라벨 | task | 끝났다는 기준 |
 |---|---|---|---|
-| 1 | BE | 순수 코드 도구: 프로필 필터 · 요약 조립 · 말풍선 조립 + 단위 테스트 | 아빠에게 넘기는 입력에 mood 없음, 요약 문자열이 mock 과 같은 모양 |
+| 1 | **L** | 순수 코드 도구 `backend/features/bab/rules.py`: 프로필 필터 · 요약 조립 · 말풍선 조립 + 단위 테스트 | 아빠에게 넘기는 입력에 mood 없음, 요약 문자열이 mock 과 같은 모양 |
 | 2 | BE | 단계 진행: 라우터가 `s.state["step"]` 으로 구간을 세고, upload·confirm·deliver·react·reply 는 코드로 data 생성 | live 에서도 8구간이 순서대로 나옴 |
 | 3 | BE | judge 에이전트: 사진 → `checks` (meal·home 만), 첨부 없으면 `samples/` 사진 | 응답 data 가 mock 의 judge 와 같은 모양 |
 | 4 | BE | compose 에이전트: 필터된 항목만 받아 받는 사람별 말투로 text 작성 | 엄마·아빠 메시지가 다르고, 아빠 text 에 기분 언급 없음 |
@@ -169,7 +174,7 @@ docs/work-split.md 2장 입력 계약과 mock.json 의 data 모양을 지킨다.
 
 **체크리스트**
 
-- [ ] task 1 순수 코드 도구 + 테스트 (`tests/` 에. 계약 테스트 `test_bab_contract.py` 도 계속 통과)
+- [ ] task 1 순수 코드 도구는 **영신(L)** 이 `rules.py` 로 만든다. 채연은 그걸 import 해서 쓴다 (14:20 까지 올라온다)
 - [ ] task 2 단계 진행 — **`beat_index` 로 분기하지 않는다** (mock 재생기 전용). `s.state["step"]`
 - [ ] task 3 judge — 첨부 없으면 `samples/` 사진, 기분은 판정하지 않음
 - [ ] task 4 compose — 프로필에 없는 항목은 **모델에 넘기기 전에** 코드로 뺀다
@@ -179,7 +184,7 @@ docs/work-split.md 2장 입력 계약과 mock.json 의 data 모양을 지킨다.
 - [ ] 15:30~16:30 예외: 사진 판정 실패 시 `status: "unknown"`, 직접 입력 기분은 뜻을 바꾸지 않음
 
 **완료 기준:** `uv run pytest` · `pnpm smoke` 통과, live 에서 judge·compose 가 mock 과 같은 모양
-**건드리지 말 것:** `backend/main.py`, `backend/core/`, `mock.json` 의 구간 id. 형식을 바꿔야 하면 먼저 세민·영신에게
+**건드리지 말 것:** `backend/main.py`, `backend/core/`, `backend/features/bab/rules.py`(영신 담당), `mock.json` 의 구간 id. 형식을 바꿔야 하면 먼저 세민·영신에게
 **넘겨줄 것:** live 응답 예시 1벌 (세민 연출·슬라이드 숫자용)
 
 ---
