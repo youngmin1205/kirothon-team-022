@@ -192,7 +192,12 @@ def filter_facts(recipient: dict[str, Any], facts: dict[str, Any]) -> dict[str, 
         "child": facts.get("child") or child_name(),
     }
 
-    checks = [c for c in facts.get("checks", []) if c.get("item") in allowed]
+    # 확인 단계를 거치고도 unknown 인 항목은 보내지 않는다. "귀가 확인이 안 됐어요" 같은
+    # 문장은 정직하지만 부모님을 불안하게 만든다. 모르는 것은 말하지 않는다 (R4-5)
+    checks = [
+        c for c in facts.get("checks", [])
+        if c.get("item") in allowed and c.get("status") != "unknown"
+    ]
     if checks:
         out["checks"] = checks
     if "mood" in allowed and facts.get("mood"):

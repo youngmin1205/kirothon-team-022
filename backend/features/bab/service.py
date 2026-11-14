@@ -157,6 +157,12 @@ def run_judge(parent: Session, files: list[Attachment] | None = None) -> dict[st
 # ── compose: 받는 사람별 말투 ──────────────────────────────────────────────
 
 
+def _present_items(allowed: dict[str, Any]) -> list[str]:
+    """filter_facts 결과에서 값이 실제로 있는 항목 key 만."""
+    present = [c["item"] for c in allowed.get("checks", [])]
+    return present + [k for k in ("mood", "note") if k in allowed]
+
+
 def _compose_prompt(allowed: dict[str, Any], summary: str) -> str:
     """모델에 넘길 한 덩어리. filter_facts 로 **이미 걸러진** 입력만 담는다.
 
@@ -166,7 +172,9 @@ def _compose_prompt(allowed: dict[str, Any], summary: str) -> str:
     payload: dict[str, Any] = {
         "to": allowed["name"],
         "tone": allowed.get("tone", ""),
-        "items": allowed.get("items", []),
+        # 프로필의 공개 항목이 아니라 **실제로 값이 있는** 항목만 넘긴다. 프로필 목록을 주면
+        # unknown 이라 빠진 밥·귀가까지 모델이 "잘 먹었어"로 지어낸다 (R4-5)
+        "items": _present_items(allowed),
         "summary": summary,
     }
     for key in ("checks", "mood", "note"):
@@ -208,7 +216,14 @@ def run_compose(parent: Session) -> dict[str, Any]:
     for recipient in rules.recipients():
         allowed = rules.filter_facts(recipient, facts)
         summary = rules.build_summary(recipient, facts)
-        result = compose.run(_scratch(parent, "compose"), _compose_prompt(allowed, summary))
+        if _present_items(allowed):
+            text = _compose_text(
+                compose.run(_scratch(parent, "compose"), _compose_prompt(allowed, summary)),
+                recipient, summary,
+            )
+        else:
+            # 보낼 사실이 하나도 없으면 모델을 부르지 않는다. 부르면 빈 입력을 지어내서 채운다
+            text = f"{recipient['name']}, 오늘 안부 전해요."
         messages.append(
             {
                 "to": recipient["id"],
@@ -216,7 +231,7 @@ def run_compose(parent: Session) -> dict[str, Any]:
                 "channel": recipient.get("channel", ""),
                 "items": allowed.get("items", []),
                 "summary": summary,
-                "text": _compose_text(result, recipient, summary),
+                "text": text,
             }
         )
     return {"messages": messages}

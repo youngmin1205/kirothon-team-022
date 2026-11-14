@@ -185,6 +185,10 @@ def _upload(
 
     facts = _facts(s)
     facts["photos"] = photos
+    # judge 는 별도 요청이다. 자녀가 올린 사진을 세션에 들고 있어야, judge 요청에 첨부가
+    # 빠져도 samples/ 데모 사진으로 바꿔 판정하지 않는다 (R2-3 은 사진을 올리지 않은 경우만)
+    if files:
+        s.state["upload_files"] = list(files)
     facts["mood"] = mood
     facts["note"] = note
     return {
@@ -299,7 +303,7 @@ def _judge(
     s: sessions.Session, payload: dict[str, Any] | None, files: list[Attachment] | None
 ) -> dict[str, Any]:
     """사진 → 밥·귀가. 모델 호출은 service.run_judge 가 한다 (task 3)."""
-    out = run_judge(s, files)
+    out = run_judge(s, files or s.state.get("upload_files"))
     line = rules.build_summary(PHOTO_ONLY, {"checks": out["checks"]})
     text = f"사진으로 {line} 을 확인했어요." if line else "사진으로 확인한 것이 없어요."
     return {"text": text, "data": out, "agent": "judge"}

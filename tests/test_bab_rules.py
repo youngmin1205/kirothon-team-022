@@ -123,9 +123,20 @@ def test_dad_summary_has_no_mood() -> None:
     assert "피곤" not in summary and "😪" not in summary
 
 
-def test_summary_says_what_is_unknown() -> None:
-    facts = {**FACTS, "checks": [{"item": "meal", "status": "unknown", "detail": None}]}
-    assert "확인 안 됨" in rules.build_summary(MOM, facts)
+def test_unknown_check_is_not_sent() -> None:
+    # 사진으로 모르는 항목은 부모님께 보내지 않는다 (R4-5). 모델 입력에도 없다
+    facts = {
+        **FACTS,
+        "checks": [
+            {"item": "meal", "status": "unknown", "detail": "음식 사진 없음"},
+            {"item": "home", "status": "done", "detail": "21시 귀가"},
+        ],
+    }
+    summary = rules.build_summary(MOM, facts)
+    assert "확인 안 됨" not in summary and "밥" not in summary
+    assert "21시 귀가" in summary
+    assert [c["item"] for c in rules.filter_facts(MOM, facts)["checks"]] == ["home"]
+    assert "checks" not in rules.filter_facts(DAD, {**facts, "checks": facts["checks"][:1]})
 
 
 def test_bubble_carries_summary_and_link() -> None:
@@ -147,3 +158,13 @@ def test_preview_description_is_the_same_summary() -> None:
 def test_mock_data_returns_beat_data() -> None:
     assert "checks" in rules.mock_data("judge")
     assert rules.mock_data("없는구간") is None
+
+
+def test_compose_input_lists_only_present_items() -> None:
+    # 프로필에 meal 이 있어도 unknown 이라 빠졌으면 모델 입력 items 에도 없다 (R4-5)
+    from backend.features.bab import service
+
+    facts = {**FACTS, "checks": [{"item": "meal", "status": "unknown", "detail": None}]}
+    allowed = rules.filter_facts(MOM, facts)
+    assert "meal" not in service._present_items(allowed)
+    assert service._present_items(rules.filter_facts(DAD, facts)) == []
