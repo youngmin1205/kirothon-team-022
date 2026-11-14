@@ -229,6 +229,8 @@ def _deliver(
             "bubble": bubble,
             "preview": preview,
             "link": DEMO_LINK,
+            # 실제 폰 테스트용 (추가 필드). 자녀 폰이 이 id 로 부모 링크를 만들고 답장을 기다린다
+            "session": s.id,
         },
     }
 
@@ -391,6 +393,30 @@ def start(body: StartIn) -> dict[str, Any]:
         s.state["input"] = body.payload
         text += "\n\n[입력값]\n" + json.dumps(body.payload, ensure_ascii=False)
     return _envelope(s, _turn(s, text, body.payload))
+
+
+@router.get("/link/{session_id}")
+def link(session_id: str) -> dict[str, Any]:
+    """부모님 폰이 여는 답장 페이지 (실제 폰 테스트용, 읽기 전용).
+
+    자녀 폰도 이걸 2초마다 읽어 답장이 왔는지 본다. 세션은 메모리에만 있으므로
+    서버를 재시작하면 링크가 404 가 된다.
+    """
+    s = sessions.get(session_id)
+    if s is None:
+        raise HTTPException(404, f"세션을 찾을 수 없습니다: {session_id}")
+    facts = _facts(s)
+    parent = _messages(s)[0]
+    step = int(s.state.get("step", 0))
+    return {
+        "child": facts["child"],
+        "name": parent["name"],
+        "summary": parent.get("summary", ""),
+        "buttons": [dict(b) for b in rules.profiles()["parentButtons"]],
+        "pressed": facts.get("pressed") or [],
+        # 다음에 올 구간. "react" 일 때만 부모님이 답할 수 있다
+        "next": STEPS[step] if step < len(STEPS) else None,
+    }
 
 
 @router.post("/reply")

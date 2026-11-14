@@ -64,6 +64,8 @@ export interface BabBeats {
     bubble?: string
     preview?: { title?: string; description?: string; image?: string }
     link?: string
+    /** 실제 폰 테스트용. 부모 링크와 답장 대기에 쓴다 */
+    session?: string
   }
   react: { from?: string; name?: string; buttons?: ParentButton[]; pressed?: ButtonKey[] }
   reply: { from?: string; name?: string; chips?: ParentButton[]; toast?: string; celebrate?: boolean }
@@ -82,3 +84,13 @@ export const BEAT_ORDER: BeatId[] = [
   'react',
   'reply',
 ]
+
+/** GET /api/bab/link/{sid} — 부모님 폰 답장 페이지 (실제 폰 테스트용) */
+export type LinkInfo = {
+  child: string
+  name: string
+  summary: string
+  buttons: { key: ButtonKey; emoji: string; label: string }[]
+  pressed: ButtonKey[]
+  next: string | null
+}

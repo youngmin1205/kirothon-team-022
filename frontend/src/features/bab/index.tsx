@@ -18,7 +18,7 @@
  * 녹화 주의: capture 는 `.toast` 를 숨기므로 답장 알림은 폰 안의 화면으로 그린다.
  */
 import type { CSSProperties } from 'react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDemo } from '../../app/useDemo'
 import { isShowcase, Shell } from '../../app/Shell'
 import { ArchFlow, Card, Steps } from '../../ui/primitives'
@@ -29,6 +29,8 @@ import type { BabBeats, BeatId, ButtonKey, Check as CheckT, ItemKey, Mood, MoodK
 import { BEAT_ORDER } from './types'
 import { CHILD_NAME, ITEMS, MOOD_OPTIONS, PARENT_BUTTONS, PHOTO_EMOJI, RECIPIENTS, SAY } from './constants'
 import { Avatar, Bowl, Camera, Check, Lock, Pencil, Send, Sliders, X } from './icons'
+import { MomLinkPage } from './remote'
+import { fetchLink, momLink, readView, shareMessage, type View } from './remote-link'
 import './bab.css'
 
 const FEATURE = 'bab'
@@ -49,12 +51,25 @@ const CONFETTI = Array.from({ length: 14 }, (_, i) => ({
   c: ['#E8613C', '#F2B33D', '#7FB685', '#E58FA0'][i % 4],
 }))
 
+/** 실제 폰 테스트: ?view=mom&s=<id> 면 부모님 답장 페이지, 아니면 두 폰 화면 */
 export function BabView() {
+  const { view, sid } = readView()
+  if (view === 'mom' && sid) return <MomLinkPage sid={sid} />
+  return <BabDuo view={view} />
+}
+
+function BabDuo({ view }: { view: View }) {
   const { play, running, states, beats, error, source, reset, dataByBeat, send, sending, lines } =
     useDemo({ feature: FEATURE })
 
   // dataByBeat 는 구간 id → data. 구간마다 모양이 정해져 있으므로 여기서 한 번만 좁힌다
-  const d = dataByBeat as Partial<BabBeats>
+  const raw = dataByBeat as Partial<BabBeats>
+  // 실제 폰 테스트(view=child): react 턴은 부모님 폰이 보내므로, 자녀 폰이 부른 답장 응답이
+  // 한 칸 앞(react 자리)에 기록된다. 답장 모양(chips)이면 reply 로 옮겨 읽는다
+  const d: Partial<BabBeats> =
+    view === 'child' && !raw.reply && raw.react && 'chips' in raw.react
+      ? { ...raw, reply: raw.react as BabBeats['reply'], react: undefined }
+      : raw
   const reached = (id: BeatId) =>
     d[id] !== undefined || states[id] === 'active' || states[id] === 'done'
   const busy = running || sending
@@ -71,6 +86,7 @@ export function BabView() {
   const [pressed, setPressed] = useState<ButtonKey[]>([])
   const [linkOpen, setLinkOpen] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
+  const [shareNote, setShareNote] = useState<string | null>(null)
 
   // 처음으로·데모 재생을 누르면 직접 고른 값도 비운다 (effect 대신 이벤트에서 비운다)
   const clearLocal = () => {
@@ -84,6 +100,7 @@ export function BabView() {
     setEditing(null)
     setPressed([])
     setLinkOpen(false)
+    setShareNote(null)
   }
 
   /* ── 화면에 그릴 값: 직접 고른 값 → 서버 값 순서 ─────────── */
@@ -116,9 +133,35 @@ export function BabView() {
   // 재생·전송이 끝나면 두 폰 모두 또렷하게 둔다 (마지막 장면에서 엄마 폰이 흐리면 결과가 안 보인다)
   const focus = activeBeat && (running || sending) ? (MOM_BEATS.includes(activeBeat) ? 'mom' : 'child') : null
 
+  // 실제 폰 테스트(view=child): 보낸 뒤 부모님 링크에서 답장이 왔는지 2초마다 본다.
+  // 답장이 오면 reply 구간을 자녀 폰이 직접 불러 정점 화면을 그린다.
+  const remoteSid = view === 'child' ? d.deliver?.session : undefined
+  const waiting = Boolean(remoteSid) && reached('deliver') && !reached('reply') && !running
+  useEffect(() => {
+    if (!waiting || !remoteSid) return
+    let alive = true
+    const timer = window.setInterval(() => {
+      fetchLink(remoteSid)
+        .then((info) => {
+          if (alive && info.pressed.length && info.next === 'reply') {
+            alive = false
+            window.clearInterval(timer)
+            void send(beats.find((b) => b.id === 'reply')?.say ?? SAY.reply)
+          }
+        })
+        .catch(() => undefined)
+    }, 2000)
+    return () => {
+      alive = false
+      window.clearInterval(timer)
+    }
+  }, [waiting, remoteSid, send, beats])
+
   // mock 모드에서 직접 누르면 서버가 안내만 돌려준다. 개발용 안내라 계측 모드에서만 보인다
   const lastLine = lines.at(-1)
   const advisory = isShowcase() && !running && lastLine?.who === 'system' ? lastLine.text : null
+  // 고정 시나리오(USE_MOCK=1)는 직접 누른 입력을 반영하지 않는다. 아무 반응이 없어 보이지 않게 알린다
+  const mockIgnored = source === 'mock' && !running && lastLine?.who === 'system'
 
   /* ── 사람이 누르는 버튼 → 입력 계약대로 send ───────────── */
   const sayOf = (id: BeatId) => beats.find((b) => b.id === id)?.say ?? SAY[id]
@@ -132,7 +175,9 @@ export function BabView() {
       files: photos.length ? photos : undefined,
       payload: { mood, note: note.trim() || null },
     })
-    await send(sayOf('judge'))
+    // judge 는 별도 요청이라 사진을 다시 실어 보낸다. 빠지면 서버가 데모 사진(samples/)으로
+    // 판정해서, 밥이 아닌 사진도 "밥 먹었어요"가 된다.
+    await send(sayOf('judge'), { files: photos.length ? photos : undefined })
   }
 
   const confirm = async () => {
@@ -219,7 +264,7 @@ export function BabView() {
         </div>
       }
     >
-      <div className="bab-stage" id="bab-duo" data-focus={focus ?? 'none'}>
+      <div className="bab-stage" id="bab-duo" data-focus={focus ?? 'none'} data-view={view ?? undefined}>
         {/* ══ 자녀 폰 ══════════════════════════════════════ */}
         <figure className="bab-device" data-device="child" data-dim={focus === 'mom'}>
           <PhoneFrame>
@@ -308,6 +353,11 @@ export function BabView() {
                       {photoError ? (
                         <p className="bab-error" role="alert">
                           {photoError}
+                        </p>
+                      ) : null}
+                      {mockIgnored ? (
+                        <p className="bab-error" role="status" id="bab-mock-hint">
+                          고정 시나리오에서는 직접 고른 값이 반영되지 않아요. 위의 ‘데모 재생’을 눌러 주세요.
                         </p>
                       ) : null}
 
@@ -516,6 +566,26 @@ export function BabView() {
                         </li>
                       ))}
                     </ul>
+                    {remoteSid ? (
+                      <div className="bab-share" id="bab-share">
+                        <p>카톡·문자로 직접 보내 주세요</p>
+                        {messages.map((m) => (
+                          <button
+                            key={m.to}
+                            type="button"
+                            className="bab-share-btn"
+                            data-share={m.to}
+                            onClick={() =>
+                              void shareMessage(m.text || m.summary, momLink(remoteSid), m.channel).then(setShareNote)
+                            }
+                          >
+                            <Avatar name={m.name} tone={toneOf(m.to)} size={24} />
+                            {m.name}께 {channelName(m.channel)} 보내기
+                          </button>
+                        ))}
+                        {shareNote ? <small role="status">{shareNote}</small> : null}
+                      </div>
+                    ) : null}
                     <p className="bab-wait">
                       <i className="bab-dots">
                         <b />

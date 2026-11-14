@@ -343,3 +343,35 @@ body:has(#bab-duo) ::selection { background: rgba(232, 97, 60, 0.22); }
   .bab-stage *, .bab-stage *::before, .bab-stage *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition: none !important; }
   .bab-confetti, .bab-relay { display: none; }
 }
+
+/* ── 실제 폰 테스트 (?view=child · ?view=mom&s=…) ─────────────────────────
+   자녀 폰만 / 부모님 답장 페이지만 보여 준다. 폰 화면 폭이면 틀을 벗기고 화면을 꽉 채운다. */
+body:has(.bab-solo) { background: #fffaf2; color: #2b2118; }
+.bab-stage[data-view='child'] .bab-device[data-device='mom'] { display: none; }
+.bab-solo { display: block; min-height: 100dvh; max-width: 520px; margin: 0 auto; }
+.bab-solo .bab-app { min-height: 100dvh; }
+.bab-solo .bab-scroll { padding: 28px 20px 32px; }
+
+.bab-share { display: grid; gap: 8px; width: 100%; margin-top: 6px; }
+.bab-share p { margin: 0; font-size: 14px; color: var(--bab-ink2); font-weight: 600; }
+.bab-share-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px;
+  border: 1px solid var(--bab-line); border-radius: 14px; background: var(--bab-paper);
+  font-size: 16px; font-weight: 700; color: var(--bab-ink); cursor: pointer;
+}
+.bab-share-btn:active { transform: scale(0.98); }
+.bab-share small { font-size: 13px; color: var(--bab-leaf); text-align: center; }
+
+@media (max-width: 600px) {
+  /* 상단 데모 버튼 줄만 숨긴다. 오류 카드(.dev-bar#error)는 남겨 실패가 보이게 한다 */
+  body:has(.bab-stage[data-view]) header.dev-bar { display: none; }
+  body:has(.bab-stage[data-view]) main.wrap { padding: 0; max-width: none; }
+  .bab-stage[data-view='child'] { gap: 0; }
+  .bab-stage[data-view='child'] .bab-device { width: 100%; }
+  .bab-stage[data-view='child'] .bab-device figcaption { display: none; }
+  .bab-stage[data-view='child'] .bab-device .phone {
+    width: 100vw; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; background: var(--bab-rice);
+  }
+  .bab-stage[data-view='child'] .bab-device .phone .screen { border-radius: 0; }
+  .bab-stage[data-view='child'] .bab-device .phone .notch { display: none; }
+}

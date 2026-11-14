@@ -144,6 +144,23 @@ describe('밥은 먹었니', () => {
     })
   })
 
+  it('올린 사진은 judge 요청에도 실린다 (빠지면 서버가 데모 밥 사진으로 판정한다)', async () => {
+    const user = userEvent.setup()
+    render(<BabView />)
+    await waitFor(() => expect(document.querySelectorAll('[data-beat]')).toHaveLength(8))
+
+    const photo = new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], 'desk.jpg', { type: 'image/jpeg' })
+    await user.upload(q('input[type=file]') as HTMLInputElement, photo)
+    await user.click(screen.getByRole('radio', { name: /피곤해/ }))
+    await user.click(q('#bab-cta') as HTMLButtonElement)
+    await waitFor(() => expect(bodies).toHaveLength(2))
+
+    const fileNames = (b: ReplyBody) =>
+      ((b as ReplyBody & { files?: { name: string }[] }).files ?? []).map((f) => f.name)
+    expect(fileNames(bodies[0])).toEqual(['desk.jpg']) // upload
+    expect(fileNames(bodies[1])).toEqual(['desk.jpg']) // judge
+  })
+
   it('＋ 시트에 한마디와 받는 사람별 내용이 숨어 있다', async () => {
     const user = userEvent.setup()
     render(<BabView />)
