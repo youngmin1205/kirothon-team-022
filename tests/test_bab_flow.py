@@ -124,3 +124,26 @@ def test_style_cannot_leak_filtered_mood_to_dad() -> None:
     for w in MOOD_WORDS:
         assert w not in dad_msg["text"], w
         assert w not in dad_msg["summary"], w
+
+
+def test_compose_retries_then_falls_back_to_code_text(monkeypatch) -> None:
+    """모델이 두 번 다 사실과 어긋나면 코드 문장으로 보낸다 (R4-6)."""
+    import backend.features.bab.rules as rules
+    from backend.core.bedrock import Result
+
+    calls: list[str] = []
+
+    def lying(session, prompt, files=None):
+        calls.append(prompt)
+        return Result(text="", source="bedrock", data={"text": "엄마, 점심 잘 먹었어. 괜찮아!"})
+
+    monkeypatch.setattr(service.orchestrator.agents["compose"], "run", lying)
+    facts = _facts()
+    facts["checks"] = [{"item": "meal", "status": "not_yet", "detail": None}]
+    s = Session(id="t-guard", feature="bab")
+    s.state["facts"] = facts
+    mom = next(m for m in service.run_compose(s)["messages"] if m["to"] == "mom")
+    assert len([c for c in calls if "엄마" in c]) == 2  # 1회 재시도
+    assert "틀렸다" in calls[1]  # 재시도에 문제를 알려 준다
+    assert mom["text"] == rules.fallback_text({"name": "엄마"}, mom["summary"])
+    assert "먹었어" not in mom["text"]

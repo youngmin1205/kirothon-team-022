@@ -76,7 +76,7 @@ JUDGE_SYSTEM = (
     "사진으로 확인할 수 있는 것은 밥(meal)과 귀가(home) 두 가지뿐이다. "
     "기분은 절대 판단하지 않는다. 기분은 자녀가 버튼으로 직접 고른다. "
     "status 는 사진으로 확인되면 done, 아직이면 not_yet, 사진으로 알 수 없으면 unknown 이다. "
-    "지어내지 말고, 확실하지 않으면 unknown 으로 둔다. detail 은 한 줄로 짧게 적는다. "
+    "지어내지 말고, 확실하지 않으면 unknown 으로 둔다. detail 은 사진에 보이는 것만 짧게 적는다 (예: 점심 김치찌개, 현관 도착). '확인'·'완료' 같은 말은 쓰지 않는다. 부모님 메시지에 그대로 들어간다. "
     "답은 아래 JSON 한 덩어리로만 준다. item 은 meal 과 home 만 쓴다.\n"
     '```json\n'
     '{"checks": ['
@@ -94,6 +94,8 @@ COMPOSE_SYSTEM = (
     "voice_examples 가 있으면 그 말버릇·이모지를 따라 쓰되, 받는 사람과의 관계(존댓말/반말)는 "
     "tone 을 우선한다. 입력에 없는 사실은 말투 때문에라도 지어내지 않는다. "
     "받는 사람의 tone 에 맞춰 두 문장 이내로 쓴다. "
+    "facts 는 코드가 확정한 사실 문장이다. 뜻을 바꾸거나 반대로 말하지 않는다. "
+    "'아직 ~못/안 ~다'는 아직 안 했다는 뜻이다. 확인·사진·판정·AI 같은 말은 쓰지 않는다. "
     "답은 아래 JSON 한 덩어리로만 준다.\n"
     '```json\n{"text": "엄마~ 점심 잘 먹었고 9시에 집 들어왔어."}\n```'
 )
@@ -239,9 +241,8 @@ def _compose_prompt(
         "items": _present_items(allowed),
         "summary": summary,
     }
-    for key in ("checks", "mood", "note"):
-        if key in allowed:
-            payload[key] = allowed[key]
+    # status 코드·judge 설명 대신 코드가 만든 사실 문장만 넘긴다 (R4-6)
+    payload["facts"] = rules.fact_sentences(allowed)
     if voice:
         payload["voice_examples"] = voice
     return f"{allowed['name']}에게 보낼 안부 메시지를 써 줘.\n{json.dumps(payload, ensure_ascii=False)}"
@@ -266,6 +267,32 @@ def _compose_text(result: Result, recipient: dict[str, Any], summary: str) -> st
     return summary or recipient["name"]
 
 
+def _guarded_text(
+    parent: Session,
+    recipient: dict[str, Any],
+    allowed: dict[str, Any],
+    summary: str,
+    tone: str | None,
+    voice: list[str],
+) -> str:
+    """생성 → 코드 검증 → 1회 재시도 → 코드 문장 (R4-6).
+
+    프롬프트 규칙은 모델이 어길 수 있다. 사실과 어긋난 문장은 부모님께 가기 전에 코드가 잡는다.
+    """
+    prompt = _compose_prompt(allowed, summary, tone, voice)
+    for attempt in range(2):
+        result = orchestrator.agents["compose"].run(_scratch(parent, "compose"), prompt)
+        text = _compose_text(result, recipient, summary)
+        if result.source != "bedrock":
+            return text  # mock 폴백 문장은 검증 대상이 아니다
+        problems = rules.check_text(text, allowed)
+        if not problems:
+            return text
+        logger.warning("[compose:%s] 검증 실패 %d회: %s | %s", recipient["id"], attempt + 1, problems, text)
+        prompt += "\n\n방금 답은 이 점이 틀렸다: " + "; ".join(problems) + ". facts 의 뜻대로 다시 써."
+    return rules.fallback_text(allowed, summary)
+
+
 def run_compose(parent: Session) -> dict[str, Any]:
     """받는 사람마다 공개 항목과 말투가 다른 메시지를 만든다 (R4, R5).
 
@@ -278,20 +305,13 @@ def run_compose(parent: Session) -> dict[str, Any]:
     """
     facts = parent.state.get("facts", {})
     style = normalize_style(parent.state.get("input"))
-    compose = orchestrator.agents["compose"]
     messages: list[dict[str, Any]] = []
     for recipient in rules.recipients():
         allowed = rules.filter_facts(recipient, facts)
         summary = rules.build_summary(recipient, facts)
         tone = style["tones"].get(recipient["id"])
         if _present_items(allowed):
-            text = _compose_text(
-                compose.run(
-                    _scratch(parent, "compose"),
-                    _compose_prompt(allowed, summary, tone, style["voice"]),
-                ),
-                recipient, summary,
-            )
+            text = _guarded_text(parent, recipient, allowed, summary, tone, style["voice"])
         else:
             # 보낼 사실이 하나도 없으면 모델을 부르지 않는다. 부르면 빈 입력을 지어내서 채운다
             text = f"{recipient['name']}, 오늘 안부 전해요."

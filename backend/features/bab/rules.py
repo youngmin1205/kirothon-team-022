@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -149,7 +150,13 @@ def normalize_checks(
             item = row.get("item")
             if item not in PHOTO_ITEMS:
                 continue  # mood·note 는 판정 대상이 아니다
-            merged[item] = _check(item, row.get("status"), row.get("detail"), row.get("photo"))
+            detail = row.get("detail")
+            prev = merged.get(item)
+            if prev and row.get("status") != prev["status"] and _text(detail) == prev["detail"]:
+                # 자녀가 상태만 바꿨다. judge 가 쓴 설명("점심 식사 완료")이 "아직" 옆에 남으면
+                # 모델이 그 설명을 믿고 "점심 잘 먹었어"를 쓴다. 낡은 설명은 버린다 (R4-6)
+                detail = None
+            merged[item] = _check(item, row.get("status"), detail, row.get("photo"))
 
     # 화면 순서를 고정한다. 칩이 매번 다른 순서로 뜨면 녹화가 흔들린다
     return [merged[i] for i in PHOTO_ITEMS if i in merged]
@@ -220,10 +227,66 @@ def _piece(check: dict[str, Any]) -> str:
     if status == "done":
         body = detail or f"{label} 확인"
     elif status == "not_yet":
-        body = f"{label} 아직"
+        body = NOT_YET_PHRASE.get(check.get("item", ""), f"{label} 아직")
     else:
         body = f"{label} 확인 안 됨"
     return f"{emoji} {body}"
+
+
+# '아직' 상태를 사람이 읽는 말로. "밥 아직"은 "아직 확인 못 함"으로 읽히기 쉽다
+NOT_YET_PHRASE: dict[str, str] = {"meal": "아직 밥 전", "home": "아직 귀가 전"}
+
+# 모델에 넘기는 확정 사실 문장. 모델은 enum(done/not_yet)을 해석하지 않고 이 문장만 다듬는다
+_FACT_DONE = {"meal": "밥을 먹었다", "home": "집에 들어왔다"}
+_FACT_NOT_YET = {"meal": "아직 밥을 못 먹었다", "home": "아직 집에 안 들어왔다"}
+
+
+def fact_sentences(allowed: dict[str, Any]) -> list[str]:
+    """filter_facts 결과를 **코드가** 확정 사실 문장으로 바꾼다 (R4-6).
+
+    모델에 status 코드와 judge 설명을 날것으로 주면, 둘이 어긋날 때 모델이 한쪽을 골라
+    지어낸다. 사실의 뜻은 코드가 정하고, 모델은 말투만 맡는다.
+    """
+    out: list[str] = []
+    for c in allowed.get("checks", []):
+        item, status, detail = c.get("item"), c.get("status"), c.get("detail")
+        if status == "done":
+            out.append(f"{_FACT_DONE[item]} ({detail})" if detail else _FACT_DONE[item])
+        elif status == "not_yet":
+            out.append(_FACT_NOT_YET[item])
+    mood = allowed.get("mood")
+    if mood:
+        out.append(f"지금 기분은 '{mood['label']}'이다")
+    if allowed.get("note"):
+        out.append(f"자녀가 직접 남긴 말: {allowed['note']}")
+    return out
+
+
+# 모델 출력 검증 (생성 → 검증 → 재시도 → 코드 문장). 프롬프트는 부탁이고, 이건 강제다
+_SYSTEM_WORDS = ("확인", "사진", "판정", "AI", "프로필")
+_HARD_MOODS = ("tired", "busy", "sick")
+
+
+def check_text(text: str, allowed: dict[str, Any]) -> list[str]:
+    """메시지 본문이 확정 사실과 어긋나는 곳을 찾는다. 빈 목록이면 통과 (R4-6)."""
+    problems: list[str] = []
+    if any(w in text for w in _SYSTEM_WORDS):
+        problems.append("시스템 단어(확인·사진·판정 등)를 썼다")
+    status = {c.get("item"): c.get("status") for c in allowed.get("checks", [])}
+    negated = lambda verb: bool(re.search(rf"(못|안)\s*{verb}", text))  # noqa: E731
+    if status.get("meal") == "not_yet" and "먹었" in text and not negated("먹"):
+        problems.append("아직 밥을 못 먹었는데 먹었다고 썼다")
+    if status.get("home") == "not_yet" and "들어왔" in text and not negated("들어"):
+        problems.append("아직 집에 안 들어왔는데 들어왔다고 썼다")
+    mood = allowed.get("mood") or {}
+    if mood.get("key") in _HARD_MOODS and "괜찮" in text:
+        problems.append(f"기분 '{mood.get('label')}'을 괜찮다로 바꿨다")
+    return problems
+
+
+def fallback_text(allowed: dict[str, Any], summary: str) -> str:
+    """모델이 두 번 다 어긋나면 코드가 쓰는 문장. 말투는 밋밋해도 사실은 틀리지 않는다."""
+    return f"{allowed['name']}, 오늘 안부 전해요. {summary}" if summary else f"{allowed['name']}, 오늘 안부 전해요."
 
 
 def build_summary(recipient: dict[str, Any], facts: dict[str, Any]) -> str:

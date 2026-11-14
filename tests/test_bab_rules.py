@@ -168,3 +168,42 @@ def test_compose_input_lists_only_present_items() -> None:
     allowed = rules.filter_facts(MOM, facts)
     assert "meal" not in service._present_items(allowed)
     assert service._present_items(rules.filter_facts(DAD, facts)) == []
+
+
+# ── R4-6: 사실의 뜻은 코드가 정하고, 어긋난 문장은 코드가 잡는다 ─────────────
+
+
+def test_child_status_change_drops_stale_judge_detail() -> None:
+    base = [{"item": "meal", "status": "done", "detail": "점심 식사 완료"}]
+    rows = rules.normalize_checks(
+        {"checks": [{"item": "meal", "status": "not_yet", "detail": "점심 식사 완료"}]}, base
+    )
+    assert rows[0]["status"] == "not_yet" and rows[0]["detail"] is None
+    # 자녀가 설명까지 새로 쓰면 그 설명은 남는다
+    rows = rules.normalize_checks(
+        {"checks": [{"item": "meal", "status": "not_yet", "detail": "저녁은 이따"}]}, base
+    )
+    assert rows[0]["detail"] == "저녁은 이따"
+
+
+def test_fact_sentences_spell_out_not_yet() -> None:
+    facts = {**FACTS, "checks": [
+        {"item": "meal", "status": "not_yet", "detail": None},
+        {"item": "home", "status": "not_yet", "detail": None},
+    ]}
+    sentences = rules.fact_sentences(rules.filter_facts(MOM, facts))
+    assert "아직 밥을 못 먹었다" in sentences and "아직 집에 안 들어왔다" in sentences
+    assert not any("not_yet" in x or "확인" in x for x in sentences)
+    assert "아직 밥 전" in rules.build_summary(MOM, facts)
+
+
+def test_check_text_catches_contradictions() -> None:
+    facts = {**FACTS, "checks": [
+        {"item": "meal", "status": "not_yet", "detail": None},
+        {"item": "home", "status": "not_yet", "detail": None},
+    ]}
+    allowed = rules.filter_facts(MOM, facts)  # mood = 피곤해
+    assert rules.check_text("엄마, 아직 밥 못 먹었고 집에도 안 들어왔어. 좀 피곤해.", allowed) == []
+    assert rules.check_text("엄마, 밥이랑 집은 아직 확인 못했어요.", allowed)  # 시스템 단어
+    assert rules.check_text("엄마, 점심 잘 먹었어. 피곤해.", allowed)  # 반대 사실
+    assert rules.check_text("엄마, 아직 밥 못 먹었어. 근데 괜찮아!", allowed)  # 기분 바꿈
